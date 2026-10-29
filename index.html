@@ -1,0 +1,2385 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LakehousePrep AI — Databricks & SQL Data Engineering Learning Agent</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', ' system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          },
+          colors: {
+            brand: {
+              50: '#fff3f0',
+              100: '#ffe4de',
+              500: '#ff3621',
+              600: '#e02916',
+              700: '#ba1e0e'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0b0f19;
+      color: #e2e8f0;
+      overflow-x: hidden;
+    }
+    .code-font {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .card-glow {
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.78) 0%, rgba(15, 23, 42, 0.92) 100%);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+    }
+    .card-glow:hover {
+      border-color: rgba(255, 54, 33, 0.4);
+    }
+    .tab-active {
+      background: linear-gradient(135deg, #ff3621 0%, #ea580c 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(255, 54, 33, 0.3);
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#0b0f19] text-slate-100 selection:bg-orange-500 selection:text-white">
+
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-30 bg-[#0b0f19]/95 backdrop-blur-md border-b border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#ff3621] to-amber-500 flex items-center justify-center shadow-lg shadow-orange-600/20">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">LakehousePrep AI</h1>
+            <span class="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/30">Interview Coach</span>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">Interactive Agent for ETL Pipelines, Databricks Lakehouse &amp; Core SQL</p>
+        </div>
+      </div>
+
+      <!-- Mastery Readiness Bar -->
+      <div class="flex items-center gap-3 sm:gap-5">
+        <div class="flex items-center gap-2.5 bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-1.5">
+          <div class="text-right">
+            <div class="text-[11px] text-slate-400 font-medium">Interview Readiness</div>
+            <div class="flex items-center gap-2">
+              <div class="w-24 sm:w-28 h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div id="globalProgressBar" class="h-full bg-gradient-to-r from-[#ff3621] to-emerald-400 transition-all duration-300" style="width: 15%"></div>
+              </div>
+              <span id="globalProgressText" class="text-xs font-bold text-emerald-400">15%</span>
+            </div>
+          </div>
+        </div>
+        <button id="resetProgressBtn" type="button" class="text-xs text-slate-400 hover:text-white px-2.5 py-1.5 rounded-lg border border-slate-800 hover:border-slate-700 transition" title="Reset saved study progress">
+          Reset
+        </button>
+      </div>
+    </div>
+
+    <!-- Primary Mode Tabs -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 pb-2.5">
+      <nav class="flex items-center gap-1.5 overflow-x-auto py-1" aria-label="Learning Modes">
+        <button type="button" data-tab="concepts" class="mode-tab tab-active px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap flex items-center gap-2 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          <span>1. Concept Walkthroughs</span>
+          <span id="badgeConcepts" class="px-1.5 py-0.2 rounded-full text-[11px] bg-black/25">0/8</span>
+        </button>
+        <button type="button" data-tab="codelab" class="mode-tab bg-slate-900/80 text-slate-300 hover:text-white hover:bg-slate-800 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap flex items-center gap-2 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+          <span>2. SQL &amp; PySpark Lab</span>
+          <span id="badgeLabs" class="px-1.5 py-0.2 rounded-full text-[11px] bg-slate-800 text-slate-400">0/6</span>
+        </button>
+        <button type="button" data-tab="quiz" class="mode-tab bg-slate-900/80 text-slate-300 hover:text-white hover:bg-slate-800 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap flex items-center gap-2 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>3. Quizzes &amp; Flashcards</span>
+          <span id="badgeQuiz" class="px-1.5 py-0.2 rounded-full text-[11px] bg-slate-800 text-slate-400">0/12</span>
+        </button>
+        <button type="button" data-tab="coach" class="mode-tab bg-slate-900/80 text-slate-300 hover:text-white hover:bg-slate-800 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap flex items-center gap-2 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+          <span>4. Mock Interview &amp; Q&amp;A Agent</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Workspace Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5">
+
+    <!-- ==================== TAB 1: CONCEPT WALKTHROUGHS ==================== -->
+    <section id="view-concepts" class="space-y-5">
+      <!-- Interactive Medallion Pipeline Architecture Banner -->
+      <div class="card-glow rounded-2xl p-4 sm:p-5">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-orange-400">Interactive Architecture Simulator</span>
+            <h2 class="text-lg sm:text-xl font-bold text-white mt-0.5">End-to-End Databricks Medallion ETL Pipeline Flow</h2>
+            <p class="text-xs sm:text-sm text-slate-300 mt-1">Click any stage below to inspect how data flows from raw cloud storage to governed BI &amp; ML tables—and what interviewers ask at each step.</p>
+          </div>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" data-stage="source" class="arch-stage-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">1. Cloud Landing</button>
+            <button type="button" data-stage="bronze" class="arch-stage-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40 transition">2. Bronze (Raw)</button>
+            <button type="button" data-stage="silver" class="arch-stage-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">3. Silver (Cleaned)</button>
+            <button type="button" data-stage="gold" class="arch-stage-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">4. Gold (Curated)</button>
+            <button type="button" data-stage="unity" class="arch-stage-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">5. Unity Catalog</button>
+          </div>
+        </div>
+
+        <!-- Visual Pipeline Diagram -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-2.5 mb-4">
+          <div data-stage-card="source" class="arch-card cursor-pointer rounded-xl p-3 bg-slate-900/90 border border-slate-800 hover:border-slate-600 transition">
+            <div class="text-[11px] font-mono text-slate-400">STAGE 01</div>
+            <div class="font-bold text-sm text-white mt-0.5">S3 / ADLS / Kafka</div>
+            <div class="text-xs text-slate-400 mt-1">JSON, CSV, Parquet, CDC logs via Auto Loader (<code class="text-orange-300">cloudFiles</code>)</div>
+          </div>
+          <div data-stage-card="bronze" class="arch-card cursor-pointer rounded-xl p-3 bg-amber-950/30 border border-amber-500/50 transition">
+            <div class="text-[11px] font-mono text-amber-400">STAGE 02 • BRONZE</div>
+            <div class="font-bold text-sm text-amber-200 mt-0.5">Raw Delta Tables</div>
+            <div class="text-xs text-slate-300 mt-1">Append-only fidelity, <code class="text-amber-300">_rescued_data</code>, ingestion metadata</div>
+          </div>
+          <div data-stage-card="silver" class="arch-card cursor-pointer rounded-xl p-3 bg-slate-900/90 border border-slate-800 hover:border-slate-600 transition">
+            <div class="text-[11px] font-mono text-sky-400">STAGE 03 • SILVER</div>
+            <div class="font-bold text-sm text-sky-200 mt-0.5">Validated &amp; Enriched</div>
+            <div class="text-xs text-slate-400 mt-1">Deduplication (<code class="text-sky-300">QUALIFY</code>), SCD1/2 <code class="text-sky-300">MERGE INTO</code>, DLT checks</div>
+          </div>
+          <div data-stage-card="gold" class="arch-card cursor-pointer rounded-xl p-3 bg-slate-900/90 border border-slate-800 hover:border-slate-600 transition">
+            <div class="text-[11px] font-mono text-yellow-400">STAGE 04 • GOLD</div>
+            <div class="font-bold text-sm text-yellow-200 mt-0.5">Business Star Schema</div>
+            <div class="text-xs text-slate-400 mt-1">Dimensional Facts &amp; Dims, Materialized Views, Liquid Clustering</div>
+          </div>
+          <div data-stage-card="unity" class="arch-card cursor-pointer rounded-xl p-3 bg-slate-900/90 border border-slate-800 hover:border-slate-600 transition">
+            <div class="text-[11px] font-mono text-emerald-400">GOVERNANCE</div>
+            <div class="font-bold text-sm text-emerald-200 mt-0.5">Unity Catalog</div>
+            <div class="text-xs text-slate-400 mt-1"><code class="text-emerald-300">catalog.schema.table</code>, ACLs, row/column masks, lineage</div>
+          </div>
+        </div>
+
+        <!-- Dynamic Stage Inspector Panel -->
+        <div id="archStageDetail" class="rounded-xl bg-slate-950/90 border border-slate-800 p-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <!-- Populated dynamically by JS -->
+        </div>
+      </div>
+
+      <!-- Filter Bar + Concept Cards Grid -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button type="button" data-filter="all" class="concept-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-orange-500 text-white transition">All Concepts (8)</button>
+          <button type="button" data-filter="ETL Pipelines" class="concept-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 hover:bg-slate-800 transition">ETL Pipelines</button>
+          <button type="button" data-filter="Databricks Lakehouse" class="concept-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 hover:bg-slate-800 transition">Databricks &amp; Delta</button>
+          <button type="button" data-filter="Core SQL" class="concept-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 hover:bg-slate-800 transition">Core SQL &amp; Tuning</button>
+        </div>
+        <div class="relative">
+          <input id="conceptSearchInput" type="text" placeholder="Filter topics (e.g., MERGE, Window, Auto Loader, Skew)..." class="w-full sm:w-72 bg-slate-900 border border-slate-800 focus:border-orange-500 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none">
+        </div>
+      </div>
+
+      <!-- Master-Detail Concept Explorer -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div id="conceptListContainer" class="lg:col-span-4 space-y-2.5">
+          <!-- Populated by JS -->
+        </div>
+        <div id="conceptDetailContainer" class="lg:col-span-8 card-glow rounded-2xl p-5 sm:p-6">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: SQL & PYSPARK CODING LAB ==================== -->
+    <section id="view-codelab" class="hidden space-y-5">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 card-glow rounded-2xl p-4 sm:p-5">
+        <div>
+          <span class="text-xs font-semibold uppercase tracking-wider text-orange-400">Hands-On Coding Practice</span>
+          <h2 class="text-lg sm:text-xl font-bold text-white">Interactive Databricks SQL &amp; PySpark ETL Lab</h2>
+          <p class="text-xs sm:text-sm text-slate-300 mt-0.5">Solve real technical screen challenges covering <code class="text-orange-300">QUALIFY</code> deduplication, rolling window functions, <code class="text-orange-300">MERGE INTO</code> upserts, Auto Loader, and Lakeflow DLT expectations.</p>
+        </div>
+        <div class="flex flex-wrap gap-1.5" id="labSelectorPills">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <!-- Left Problem Spec & Sample Data -->
+        <div class="lg:col-span-5 card-glow rounded-2xl p-5 space-y-4">
+          <div class="flex items-center justify-between gap-2">
+            <span id="labCategoryBadge" class="text-[11px] font-semibold uppercase px-2.5 py-0.5 rounded-full bg-orange-500/20 text-orange-300">Core SQL</span>
+            <span id="labStatusBadge" class="text-xs font-medium text-slate-400">Not Solved Yet</span>
+          </div>
+          <h3 id="labTitle" class="text-lg font-bold text-white">Challenge Title</h3>
+          <p id="labScenario" class="text-xs sm:text-sm text-slate-300 leading-relaxed"></p>
+
+          <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 space-y-2">
+            <div class="text-xs font-semibold text-amber-400">Requirements Checklist:</div>
+            <ul id="labRequirements" class="text-xs text-slate-300 space-y-1.5 list-disc list-inside"></ul>
+          </div>
+
+          <div>
+            <div class="text-xs font-semibold text-slate-400 mb-1.5">Sample Input Schema &amp; Rows:</div>
+            <div id="labSampleTable" class="overflow-x-auto bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs font-mono text-slate-300"></div>
+          </div>
+
+          <!-- Progressive Hints -->
+          <div class="space-y-2 pt-1">
+            <div class="flex flex-wrap gap-2">
+              <button type="button" id="btnHint1" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-amber-300 transition">Hint 1: Approach</button>
+              <button type="button" id="btnHint2" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-amber-300 transition">Hint 2: Syntax Clue</button>
+              <button type="button" id="btnShowSolution" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-emerald-300 transition">Load Model Solution</button>
+            </div>
+            <div id="labHintBox" class="hidden rounded-xl bg-amber-950/40 border border-amber-500/40 p-3 text-xs text-amber-200 leading-relaxed"></div>
+          </div>
+        </div>
+
+        <!-- Right Code Editor & Execution Output -->
+        <div class="lg:col-span-7 card-glow rounded-2xl p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-rose-500/80"></span>
+              <span class="w-3 h-3 rounded-full bg-amber-500/80"></span>
+              <span class="w-3 h-3 rounded-full bg-emerald-500/80"></span>
+              <span id="labEditorLang" class="ml-2 text-xs font-mono text-slate-400">databricks_notebook.sql</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" id="btnResetCode" class="px-2.5 py-1 rounded-lg text-xs text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-700 transition">Reset Starter</button>
+              <button type="button" id="btnRunCode" class="px-4 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-[#ff3621] to-amber-600 hover:from-orange-600 hover:to-amber-500 text-white shadow-md shadow-orange-600/20 flex items-center gap-1.5 transition">
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg>
+                <span>Run &amp; Validate</span>
+              </button>
+            </div>
+          </div>
+
+          <textarea id="labCodeEditor" rows="13" spellcheck="false" class="w-full code-font text-xs sm:text-sm bg-[#070a12] text-emerald-300 border border-slate-800 focus:border-orange-500 rounded-xl p-4 outline-none leading-relaxed resize-y"></textarea>
+
+          <!-- Validation & Output Console -->
+          <div id="labOutputPanel" class="rounded-xl bg-[#070a12] border border-slate-800 p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono uppercase tracking-wider text-slate-400">Execution &amp; Grader Output</span>
+              <span id="labExecBadge" class="text-xs font-mono text-slate-500">Ready to run</span>
+            </div>
+            <div id="labOutputBody" class="text-xs text-slate-400 leading-relaxed">
+              Write your solution above and click <strong class="text-white">Run &amp; Validate</strong> to check your syntax, required clauses, and simulated query output.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: QUIZZES & FLASHCARDS ==================== -->
+    <section id="view-quiz" class="hidden space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 card-glow rounded-2xl p-4 sm:p-5">
+        <div>
+          <span class="text-xs font-semibold uppercase tracking-wider text-orange-400">Active Recall &amp; Verification</span>
+          <h2 class="text-lg sm:text-xl font-bold text-white">Scenario Quiz &amp; Rapid-Fire Flashcards</h2>
+          <p class="text-xs sm:text-sm text-slate-300 mt-0.5">Test yourself on tricky interview scenarios across ETL pipelines, Delta Lake internals, and Spark SQL edge cases.</p>
+        </div>
+        <div class="flex items-center gap-2 bg-slate-900 p-1 rounded-xl border border-slate-800">
+          <button type="button" id="subTabQuizBtn" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-orange-500 text-white transition">Scenario Quiz (12 Qs)</button>
+          <button type="button" id="subTabFlashBtn" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition">Flashcard Deck (16 Cards)</button>
+        </div>
+      </div>
+
+      <!-- SUB-VIEW A: SCENARIO QUIZ -->
+      <div id="quizSubView" class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div class="lg:col-span-8 card-glow rounded-2xl p-5 sm:p-6 space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span id="quizTopicBadge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-orange-500/20 text-orange-300">Topic</span>
+              <span id="quizCounterText" class="text-xs font-mono text-slate-400">Question 1 of 12</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button type="button" id="quizPrevBtn" class="px-2.5 py-1 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 transition">&larr; Prev</button>
+              <button type="button" id="quizNextBtn" class="px-2.5 py-1 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Next &rarr;</button>
+            </div>
+          </div>
+
+          <h3 id="quizQuestionText" class="text-base sm:text-lg font-bold text-white leading-snug"></h3>
+
+          <div id="quizOptionsContainer" class="space-y-2.5"></div>
+
+          <div id="quizExplanationBox" class="hidden rounded-xl p-4 bg-slate-950 border border-slate-800 space-y-2">
+            <div id="quizExplanationHeader" class="text-xs font-bold uppercase tracking-wider"></div>
+            <p id="quizExplanationText" class="text-xs sm:text-sm text-slate-300 leading-relaxed"></p>
+          </div>
+        </div>
+
+        <!-- Quiz Question Navigator & Score Breakdown -->
+        <div class="lg:col-span-4 card-glow rounded-2xl p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <h4 class="text-sm font-bold text-white">Quiz Navigator</h4>
+            <span id="quizScoreText" class="text-xs font-bold text-emerald-400">0 / 12 Correct</span>
+          </div>
+          <div id="quizGridNav" class="grid grid-cols-6 gap-2"></div>
+          <div class="pt-2 border-t border-slate-800/80 space-y-2 text-xs text-slate-400">
+            <div class="flex items-center justify-between">
+              <span>ETL &amp; Streaming Pipelines</span>
+              <span id="scoreEtl" class="font-mono text-slate-200">0/4</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Databricks &amp; Delta Lake</span>
+              <span id="scoreDatabricks" class="font-mono text-slate-200">0/4</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Core SQL &amp; Performance</span>
+              <span id="scoreSql" class="font-mono text-slate-200">0/4</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-VIEW B: FLASHCARDS -->
+      <div id="flashcardSubView" class="hidden space-y-5">
+        <div class="max-w-3xl mx-auto space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex flex-wrap gap-1.5">
+              <button type="button" data-fc-filter="all" class="fc-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-orange-500 text-white">All (16)</button>
+              <button type="button" data-fc-filter="ETL Pipelines" class="fc-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300">ETL Pipelines</button>
+              <button type="button" data-fc-filter="Databricks Lakehouse" class="fc-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300">Databricks</button>
+              <button type="button" data-fc-filter="Core SQL" class="fc-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300">Core SQL</button>
+            </div>
+            <span id="fcCounter" class="text-xs font-mono text-slate-400">Card 1 of 16</span>
+          </div>
+
+          <!-- Interactive Flip Card -->
+          <div id="flashcardBox" class="card-glow rounded-2xl p-6 sm:p-8 min-h-[260px] flex flex-col justify-between cursor-pointer select-none transition">
+            <div class="flex items-center justify-between">
+              <span id="fcCategoryBadge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-orange-500/20 text-orange-300">Category</span>
+              <span id="fcSideLabel" class="text-xs font-mono uppercase tracking-wider text-slate-400">Prompt (Click to Flip)</span>
+            </div>
+            <div class="my-6">
+              <h3 id="fcPromptText" class="text-lg sm:text-xl font-bold text-white leading-relaxed"></h3>
+              <div id="fcAnswerContainer" class="hidden mt-4 pt-4 border-t border-slate-800 space-y-3">
+                <p id="fcAnswerText" class="text-sm sm:text-base text-emerald-200 leading-relaxed"></p>
+                <pre id="fcCodeSnippet" class="code-font text-xs bg-slate-950 p-3 rounded-xl border border-slate-800 text-amber-300 overflow-x-auto"></pre>
+              </div>
+            </div>
+            <div class="flex items-center justify-between pt-2 border-t border-slate-800/60 text-xs text-slate-400">
+              <span>Click card or press Flip button to reveal technical answer</span>
+              <span id="fcMasteryStatus" class="font-semibold text-slate-400">Unrated</span>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <button type="button" id="fcPrevBtn" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 transition">&larr; Previous</button>
+              <button type="button" id="fcFlipBtn" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-700 hover:bg-slate-600 text-white transition">Flip Card</button>
+              <button type="button" id="fcNextBtn" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 transition">Next &rarr;</button>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" id="fcNeedReviewBtn" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500/30 transition">Need Review</button>
+              <button type="button" id="fcGotItBtn" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30 transition">Mastered &check;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: MOCK INTERVIEW & Q&A AGENT ==================== -->
+    <section id="view-coach" class="hidden space-y-5">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <!-- Left Column: Mock Technical Interview Simulator -->
+        <div class="lg:col-span-7 card-glow rounded-2xl p-5 sm:p-6 space-y-4">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-orange-400">Mock Technical Screen Evaluator</span>
+            <h2 class="text-lg sm:text-xl font-bold text-white mt-0.5">Practice Verbal &amp; System Design Interview Prompts</h2>
+            <p class="text-xs sm:text-sm text-slate-300 mt-1">Select a real Senior Data Engineer interview question, write how you would explain it to an interviewer, and get instant rubric scoring on the technical keywords and trade-offs you covered.</p>
+          </div>
+
+          <div>
+            <label for="interviewPromptSelect" class="block text-xs font-semibold text-slate-400 mb-1.5">Choose Interview Prompt:</label>
+            <select id="interviewPromptSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white outline-none focus:border-orange-500"></select>
+          </div>
+
+          <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span id="interviewDifficultyBadge" class="text-[11px] font-semibold text-amber-400 uppercase">Medium-Hard</span>
+              <span id="interviewTopicTag" class="text-[11px] font-mono text-slate-400">ETL &amp; Delta Lake</span>
+            </div>
+            <p id="interviewQuestionDisplay" class="text-sm sm:text-base font-semibold text-white leading-snug"></p>
+            <p id="interviewContextHint" class="text-xs text-slate-400"></p>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="interviewUserAnswer" class="text-xs font-semibold text-slate-300">Your Interview Response:</label>
+              <button type="button" id="btnFillSampleAnswer" class="text-xs text-orange-400 hover:text-orange-300 underline">Insert High-Scoring Sample Response</button>
+            </div>
+            <textarea id="interviewUserAnswer" rows="6" placeholder="Structure your answer clearly: 1) Direct mechanism/solution, 2) SQL/PySpark syntax or feature used, 3) Edge cases & performance trade-offs..." class="w-full bg-[#070a12] border border-slate-800 focus:border-orange-500 rounded-xl p-3.5 text-xs sm:text-sm text-slate-100 outline-none leading-relaxed"></textarea>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button type="button" id="btnEvaluateAnswer" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-[#ff3621] to-amber-600 hover:from-orange-600 hover:to-amber-500 text-white shadow-md shadow-orange-600/20 transition">
+              Evaluate My Response
+            </button>
+            <button type="button" id="btnRevealModelAnswer" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 transition">
+              Show Model Answer Rubric
+            </button>
+          </div>
+
+          <!-- Rubric Feedback Output -->
+          <div id="interviewFeedbackBox" class="hidden rounded-xl bg-slate-950 border border-slate-800 p-4 space-y-3">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Right Column: Instant Concept Q&A Agent & Cheat Sheet Finder -->
+        <div class="lg:col-span-5 card-glow rounded-2xl p-5 sm:p-6 space-y-4">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400">Interactive Knowledge Base</span>
+            <h3 class="text-lg font-bold text-white mt-0.5">Ask the Databricks &amp; SQL Tutor</h3>
+            <p class="text-xs text-slate-300 mt-1">Type any concept or click a quick-ask chip to get an interview-ready breakdown, code comparison, and official documentation links.</p>
+          </div>
+
+          <div class="flex gap-2">
+            <input id="agentAskInput" type="text" placeholder="Ask e.g. 'Z-Order vs Liquid Clustering', 'QUALIFY', 'Broadcast join'..." class="flex-1 bg-slate-900 border border-slate-700 focus:border-orange-500 rounded-xl px-3.5 py-2 text-xs sm:text-sm text-white outline-none">
+            <button type="button" id="agentAskBtn" class="px-4 py-2 rounded-xl text-xs font-bold bg-orange-500 hover:bg-orange-600 text-white transition">Ask</button>
+          </div>
+
+          <div class="flex flex-wrap gap-1.5" id="quickAskChips">
+            <button type="button" data-ask="ROW_NUMBER vs RANK vs DENSE_RANK" class="quick-ask-chip text-[11px] px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 transition">ROW_NUMBER vs RANK</button>
+            <button type="button" data-ask="Z-Order vs Liquid Clustering" class="quick-ask-chip text-[11px] px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 transition">Liquid Clustering vs Z-Order</button>
+            <button type="button" data-ask="Auto Loader vs readStream" class="quick-ask-chip text-[11px] px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 transition">Auto Loader vs readStream</button>
+            <button type="button" data-ask="SCD Type 1 vs Type 2 MERGE" class="quick-ask-chip text-[11px] px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 transition">SCD Type 2 MERGE</button>
+            <button type="button" data-ask="Data Skew & Broadcast Joins" class="quick-ask-chip text-[11px] px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 transition">Fixing Join Skew</button>
+            <button type="button" data-ask="Managed vs External Tables Unity Catalog" class="quick-ask-chip text-[11px] px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 transition">Managed vs External</button>
+          </div>
+
+          <div id="agentConversationLog" class="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // ==================== SAFE STORAGE STATE ====================
+    const defaultState = {
+      masteredConcepts: ['medallion'],
+      solvedLabs: [],
+      quizAnswers: {},
+      fcMastered: [],
+      practicedPrompts: []
+    };
+
+    let appState = JSON.parse(JSON.stringify(defaultState));
+    try {
+      const saved = localStorage.getItem('lakehouse_prep_state_v1');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        appState = Object.assign({}, defaultState, parsed);
+      }
+    } catch (e) {
+      // Fallback to in-memory state in restricted sandboxes
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem('lakehouse_prep_state_v1', JSON.stringify(appState));
+      } catch (e) {}
+      updateGlobalProgress();
+    }
+
+    // ==================== ARCHITECTURE SIMULATOR DATA ====================
+    const archStages = {
+      source: {
+        title: 'Stage 1: Cloud Object Storage & Streaming Ingestion (Auto Loader)',
+        badge: 'INGESTION LAYER',
+        summary: 'Raw files (JSON, CSV, Parquet, Avro) or Kafka streams land in S3/ADLS/GCS. Databricks Auto Loader (cloudFiles) incrementally processes new files as they arrive without expensive directory listing.',
+        interviewQ: 'Why use Auto Loader (cloudFiles) instead of standard spark.readStream.format("json")?',
+        interviewA: 'Standard file streaming repeatedly lists all files in the cloud directory, which scales poorly at millions of files. Auto Loader supports File Notification mode (SNS/SQS or Event Grid) and stores discovered file state in a scalable RocksDB checkpoint location, plus provides native schema inference, schema evolution, and a _rescued_data column.',
+        code: `df = (spark.readStream
+  .format("cloudFiles")
+  .option("cloudFiles.format", "json")
+  .option("cloudFiles.schemaLocation", "/Volumes/main/raw/checkpoints/orders_schema")
+  .option("cloudFiles.schemaEvolutionMode", "addNewColumns")
+  .load("s3://company-landing-zone/orders/"))`
+      },
+      bronze: {
+        title: 'Stage 2: Bronze Layer — Raw Historical Archive in Delta Lake',
+        badge: 'BRONZE LAYER',
+        summary: 'Stores an immutable, append-only copy of raw source payloads converted into Delta format. Preserves unexpected columns in _rescued_data and records audit metadata (_metadata.file_path, ingestion_ts) so you never have to re-fetch from upstream APIs.',
+        interviewQ: 'Should you deduplicate or drop malformed rows in the Bronze layer?',
+        interviewA: 'No! Keep Bronze append-only and faithful to the source so you can always replay downstream logic if business rules or parsing bugs are discovered later. Capture corrupt fields in _rescued_data and defer filtering/deduplication to the Bronze-to-Silver boundary.',
+        code: `CREATE OR REFRESH STREAMING TABLE bronze_orders
+COMMENT "Raw append-only orders with audit metadata"
+AS SELECT
+  *,
+  _metadata.file_path AS source_file,
+  current_timestamp() AS ingested_at
+FROM cloud_files("/Volumes/main/landing/orders", "json",
+  map("cloudFiles.inferColumnTypes", "true"));`
+      },
+      silver: {
+        title: 'Stage 3: Silver Layer — Validated, Deduplicated & Enriched Entities',
+        badge: 'SILVER LAYER',
+        summary: 'Cleanses data types, enforces data quality constraints (DLT Expectations), deduplicates retries using Window functions (ROW_NUMBER + QUALIFY), and applies Change Data Capture (SCD Type 1 or Type 2) via MERGE INTO or APPLY CHANGES INTO.',
+        interviewQ: 'What happens if your source batch in a MERGE INTO has duplicate keys for the same target row?',
+        interviewA: 'Delta throws DeltaUnsupportedOperationException ("Cannot perform Merge as multiple source rows matched and attempted to modify the same target row"). Always deduplicate the source CTE using QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at DESC) = 1 before merging!',
+        code: `WITH deduped_source AS (
+  SELECT * FROM bronze_orders
+  QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY event_ts DESC) = 1
+)
+MERGE INTO silver_orders AS t
+USING deduped_source AS s ON t.order_id = s.order_id
+WHEN MATCHED AND s.event_ts > t.event_ts THEN UPDATE SET *
+WHEN NOT MATCHED THEN INSERT *;`
+      },
+      gold: {
+        title: 'Stage 4: Gold Layer — Business-Ready Dimensional Models & Aggregates',
+        badge: 'GOLD LAYER',
+        summary: 'Organizes curated data into Kimball Star Schemas (Fact and Dimension tables) or pre-computed KPI Materialized Views optimized for BI dashboards, SQL Warehouses, and ML feature stores using Liquid Clustering (CLUSTER BY).',
+        interviewQ: 'Why use Materialized Views or Liquid Clustering on Gold tables?',
+        interviewA: 'Gold tables serve high-concurrency BI queries. Materialized Views in Lakeflow/Databricks SQL incrementally recompute aggregations, while Liquid Clustering (CLUSTER BY) co-locates data across multiple filter keys without rewriting the entire table when clustering columns change.',
+        code: `CREATE OR REFRESH MATERIALIZED VIEW gold_daily_customer_rev
+CLUSTER BY (order_date, region)
+AS SELECT
+  DATE_TRUNC('DAY', o.event_ts) AS order_date,
+  c.region,
+  COUNT(DISTINCT o.order_id) AS total_orders,
+  SUM(o.amount) AS gross_revenue
+FROM LIVE.silver_orders o
+JOIN LIVE.silver_customers c ON o.customer_id = c.customer_id
+GROUP BY 1, 2;`
+      },
+      unity: {
+        title: 'Stage 5: Unity Catalog — Unified Governance, Lineage & Access Control',
+        badge: 'GOVERNANCE LAYER',
+        summary: 'Provides centralized governance across all workspaces using a 3-level namespace (catalog.schema.table), fine-grained ANSI GRANT/REVOKE permissions, Row Filtering & Column Masking functions, and automated column-level lineage.',
+        interviewQ: 'What is the difference between a Managed Table and an External Table in Unity Catalog?',
+        interviewA: 'For a Managed Table, Unity Catalog manages both the metadata and the underlying cloud storage lifecycle—running DROP TABLE deletes the data files (after retention). For an External Table, Unity Catalog governs access and metadata, but dropping the table leaves the underlying cloud storage files intact.',
+        code: `-- Row-level security & column masking in Unity Catalog
+CREATE FUNCTION main.security.mask_email(email STRING)
+RETURN CASE WHEN is_account_group_member('compliance_admins')
+  THEN email ELSE regexp_replace(email, '(^.).*(@.*$)', '$1***$2') END;
+
+ALTER TABLE main.silver.customers
+ALTER COLUMN email SET MASK main.security.mask_email;`
+      }
+    };
+
+    // ==================== 8 DEEP-DIVE CONCEPT MODULES ====================
+    const conceptsData = [
+      {
+        id: 'medallion',
+        title: 'Medallion Architecture (Bronze, Silver, Gold)',
+        category: 'ETL Pipelines',
+        readTime: '5 min',
+        summary: 'How to design resilient multi-hop Lakehouse pipelines with clear separation of raw fidelity, entity curation, and business consumption.',
+        whyItMatters: 'Almost every Databricks system design interview starts with: "Walk me through how you structure an end-to-end ETL pipeline from raw ingestion to executive dashboards."',
+        keyPoints: [
+          'Bronze Layer: Raw, append-only history in Delta format. Avoid destructive transformations or dropping rows here; use _rescued_data to capture schema drift.',
+          'Silver Layer: Filtered, cleaned, conformed, and deduplicated single source of truth ("Enterprise View"). Ideal layer for joins, SCD Type 1/2 history, and schema enforcement.',
+          'Gold Layer: Project-specific business aggregates, Star Schema facts/dimensions, and low-latency tables served via Databricks SQL Serverless Warehouses.',
+          'Streaming vs Batch Multi-Hop: You can run Bronze-to-Silver continuously or via incremental micro-batches using Trigger.AvailableNow to get streaming state management at batch compute cost.'
+        ],
+        sqlSnippet: `-- Silver Table: Enforce schema, cast types & deduplicate
+CREATE OR REPLACE TABLE main.silver.orders AS
+SELECT
+  CAST(order_id AS BIGINT) AS order_id,
+  UPPER(TRIM(status)) AS order_status,
+  CAST(amount AS DECIMAL(12,2)) AS amount,
+  CAST(event_timestamp AS TIMESTAMP) AS event_ts
+FROM main.bronze.orders_raw
+WHERE order_id IS NOT NULL
+QUALIFY ROW_NUMBER() OVER (
+  PARTITION BY order_id ORDER BY event_timestamp DESC
+) = 1;`,
+        pysparkSnippet: `# Incremental Bronze -> Silver with Trigger.AvailableNow
+(spark.readStream
+  .table("main.bronze.orders_raw")
+  .filter("order_id IS NOT NULL")
+  .withWatermark("event_ts", "2 hours")
+  .dropDuplicatesWithinWatermark(["order_id"])
+  .writeStream
+  .option("checkpointLocation", "/Volumes/main/ops/chk/silver_orders")
+  .trigger(availableNow=True)
+  .toTable("main.silver.orders"))`,
+        interviewTrap: 'Trap: "I filter out bad records before writing to Bronze." Instead, explain that dropping records before Bronze loses auditability; store raw records in Bronze and quarantine invalid records between Bronze and Silver using DLT Expectations or a dead-letter table.',
+        docUrl: 'https://docs.databricks.com/aws/en/lakehouse/medallion',
+        docLabel: 'Databricks Docs: Medallion Lakehouse Architecture'
+      },
+      {
+        id: 'delta-internals',
+        title: 'Delta Lake Internals (_delta_log, ACID, Liquid Clustering)',
+        category: 'Databricks Lakehouse',
+        readTime: '6 min',
+        summary: 'How the _delta_log transaction log guarantees ACID transactions, optimistic concurrency, Time Travel, and high-speed file skipping.',
+        whyItMatters: 'Interviewers love probing beneath the surface: "Delta Lake is just Parquet files—how does it support UPDATE, DELETE, and concurrent readers/writers without corrupting data?"',
+        keyPoints: [
+          'The Transaction Log (_delta_log): Every commit writes an atomic JSON file (000001.json) recording actions: add file, remove file (tombstone), metadata, and per-file min/max column stats.',
+          'Data Skipping & Compaction: Delta stores min/max statistics for the first 32 columns of every Parquet file, letting queries skip irrelevant files without scanning them.',
+          'Liquid Clustering (CLUSTER BY) vs Z-Ordering: Modern Delta tables use CLUSTER BY (col1, col2) instead of rigid Hive PARTITION BY + OPTIMIZE ZORDER BY. Liquid Clustering adapts incrementally on write and avoids the small-file problem.',
+          'Deletion Vectors: Enable Copy-on-Write / Merge-on-Read speedups by marking deleted rows in a bitmap without rewriting the entire Parquet file until OPTIMIZE runs.',
+          'VACUUM & Time Travel: VACUUM removes unreferenced Parquet files older than the retention threshold (default 7 days / 168 hours).'
+        ],
+        sqlSnippet: `-- Modern Delta table with Liquid Clustering & Predictive Optimization
+CREATE TABLE main.silver.events (
+  event_id STRING,
+  user_id BIGINT,
+  event_date DATE,
+  payload STRING
+)
+USING DELTA
+CLUSTER BY (event_date, user_id);
+
+-- Time Travel query (by version or timestamp)
+SELECT * FROM main.silver.events VERSION AS OF 14;
+
+-- Compact small files & apply Liquid Clustering
+OPTIMIZE main.silver.events;
+
+-- Clean up tombstoned files older than 7 days
+VACUUM main.silver.events RETAIN 168 HOURS;`,
+        pysparkSnippet: `from delta.tables import DeltaTable
+
+delta_tbl = DeltaTable.forName(spark, "main.silver.events")
+# Inspect commit history & operation metrics
+display(delta_tbl.history(10))
+
+# Restore table to a prior state after an accidental delete
+delta_tbl.restoreToVersion(14)`,
+        interviewTrap: 'Trap: Running VACUUM table RETAIN 0 HOURS in production. Explain that setting retention to 0 disables safety checks, breaks Time Travel, and can corrupt active concurrent queries or streaming readers currently reading recently tombstoned files!',
+        docUrl: 'https://docs.databricks.com/aws/en/delta/',
+        docLabel: 'Databricks Docs: What is Delta Lake?'
+      },
+      {
+        id: 'autoloader',
+        title: 'Auto Loader (cloudFiles) & Schema Evolution',
+        category: 'ETL Pipelines',
+        readTime: '5 min',
+        summary: 'Scalable, idempotent cloud file ingestion with RocksDB state tracking, automatic schema inference, and rescued data handling.',
+        whyItMatters: 'When asked how to ingest millions of JSON or CSV files arriving in S3/ADLS every hour, Auto Loader is the canonical Databricks engineering answer.',
+        keyPoints: [
+          'File Detection Modes: Directory Listing (with incremental lexical listing optimizations) vs File Notification mode (automatically configures cloud queues like AWS SQS or Azure Event Grid).',
+          'Exact-Once Guarantees: Tracks processed filenames in a RocksDB instance inside your checkpoint directory so files are never ingested twice.',
+          'Schema Evolution Modes: addNewColumns (default—adds new columns to target schema and restarts stream), rescue (puts unexpected columns into _rescued_data without failing), failOnNewColumns, or none.',
+          'Cost Control with Trigger.AvailableNow: Run Auto Loader on a scheduled job with .trigger(availableNow=True) to process all newly arrived files in parallel micro-batches and shut down the cluster automatically.'
+        ],
+        sqlSnippet: `-- Using cloud_files() TVF in Lakeflow / DLT SQL
+CREATE OR REFRESH STREAMING TABLE bronze_clickstream
+AS SELECT
+  *,
+  _metadata.file_name AS source_file_name,
+  _metadata.file_modification_time AS file_mod_time
+FROM cloud_files(
+  's3://analytics-landing/clickstream/',
+  'json',
+  map(
+    'cloudFiles.inferColumnTypes', 'true',
+    'cloudFiles.schemaEvolutionMode', 'addNewColumns',
+    'rescuedDataColumn', '_rescued_data'
+  )
+);`,
+        pysparkSnippet: `df_bronze = (spark.readStream
+  .format("cloudFiles")
+  .option("cloudFiles.format", "json")
+  .option("cloudFiles.inferColumnTypes", "true")
+  .option("cloudFiles.schemaLocation", "/Volumes/main/bronze/schemas/clicks")
+  .option("cloudFiles.schemaEvolutionMode", "addNewColumns")
+  .load("s3://analytics-landing/clickstream/"))
+
+(df_bronze.writeStream
+  .option("checkpointLocation", "/Volumes/main/bronze/chk/clicks")
+  .option("mergeSchema", "true")
+  .trigger(availableNow=True)
+  .toTable("main.bronze.clickstream"))`,
+        interviewTrap: 'Trap: Forgetting option("mergeSchema", "true") on the writeStream side when using cloudFiles.schemaEvolutionMode = "addNewColumns". Both the reader schema location and the target Delta writer need permission to evolve the schema.',
+        docUrl: 'https://docs.databricks.com/aws/en/ingestion/cloud-object-storage/auto-loader/',
+        docLabel: 'Databricks Docs: What is Auto Loader?'
+      },
+      {
+        id: 'dlt-lakeflow',
+        title: 'Lakeflow Declarative Pipelines (Delta Live Tables / DLT)',
+        category: 'ETL Pipelines',
+        readTime: '6 min',
+        summary: 'Declarative ETL orchestration using Streaming Tables, Materialized Views, declarative Data Quality Expectations, and AUTO CDC.',
+        whyItMatters: 'Databricks interviews heavily test when to choose Streaming Tables vs Materialized Views, and how the 3 Expectation violation actions work.',
+        keyPoints: [
+          'Streaming Table vs Materialized View: A Streaming Table processes append-only/incremental data once per row (ideal for Bronze & high-volume Silver ingestion). A Materialized View maintains the exact result of a query across joins/aggregations, incrementally recomputing as upstream tables change (ideal for Gold).',
+          'Declarative Expectations (3 Modes): (1) EXPECT (cond) retains invalid rows but logs metrics in the event log; (2) ON VIOLATION DROP ROW drops invalid records before writing; (3) ON VIOLATION FAIL UPDATE halts the pipeline immediately for critical SLA violations.',
+          'AUTO CDC (APPLY CHANGES INTO): Built-in declarative engine that handles out-of-order CDC events using SEQUENCE BY and automatically maintains SCD Type 1 or SCD Type 2 tables without manual MERGE code.'
+        ],
+        sqlSnippet: `-- Silver Streaming Table with Data Quality Expectations
+CREATE OR REFRESH STREAMING TABLE silver_transactions (
+  CONSTRAINT valid_tx_id EXPECT (tx_id IS NOT NULL) ON VIOLATION FAIL UPDATE,
+  CONSTRAINT positive_amount EXPECT (amount > 0) ON VIOLATION DROP ROW,
+  CONSTRAINT valid_currency EXPECT (currency IN ('USD', 'EUR', 'GBP', 'AED'))
+)
+AS SELECT
+  tx_id, customer_id, CAST(amount AS DECIMAL(10,2)) AS amount, currency, tx_ts
+FROM STREAM(LIVE.bronze_transactions);
+
+-- Automated SCD Type 2 with APPLY CHANGES INTO
+CREATE OR REFRESH STREAMING TABLE dim_customers_scd2;
+APPLY CHANGES INTO LIVE.dim_customers_scd2
+FROM STREAM(LIVE.bronze_customer_cdc)
+KEYS (customer_id)
+APPLY AS DELETE WHEN op = 'DELETE'
+SEQUENCE BY updated_at
+COLUMNS * EXCEPT (op, _rescued_data)
+STORED AS SCD TYPE 2;`,
+        pysparkSnippet: `import dlt
+from pyspark.sql import functions as F
+
+@dlt.table(name="silver_transactions")
+@dlt.expect_or_fail("valid_tx_id", "tx_id IS NOT NULL")
+@dlt.expect_or_drop("positive_amount", "amount > 0")
+@dlt.expect("valid_currency", "currency IN ('USD', 'EUR', 'GBP', 'AED')")
+def silver_transactions():
+    return (
+        spark.readStream.table("LIVE.bronze_transactions")
+        .select("tx_id", "customer_id", F.col("amount").cast("decimal(10,2)"), "currency", "tx_ts")
+    )`,
+        interviewTrap: 'Trap: Confusing STREAM(LIVE.table) with LIVE.table. Using STREAM() creates an incremental streaming dependency; omitting STREAM() in a Materialized View performs a managed recomputation over the upstream relation.',
+        docUrl: 'https://docs.databricks.com/aws/en/ldp/',
+        docLabel: 'Databricks Docs: Spark Declarative Pipelines on Lakeflow'
+      },
+      {
+        id: 'cdc-merge',
+        title: 'CDC, MERGE INTO & Slowly Changing Dimensions (SCD 1 & 2)',
+        category: 'ETL Pipelines',
+        readTime: '6 min',
+        summary: 'Writing idempotent Delta MERGE INTO statements, handling late-arriving out-of-order events, and implementing SCD Type 2 history tracking.',
+        whyItMatters: 'Upsert logic and SCD Type 2 are among the most common live coding exercises in Data Engineering interviews.',
+        keyPoints: [
+          'SCD Type 1 (Overwrite): Updates existing attributes in place—no historical versions kept. Use MERGE INTO with WHEN MATCHED AND s.updated_at > t.updated_at THEN UPDATE.',
+          'SCD Type 2 (Full History): Tracks historical changes by closing the old active record (is_current = false, effective_end_date = s.updated_at) and inserting a new active record (is_current = true, effective_end_date = NULL).',
+          'Preventing Multiple-Source-Row Match Errors: Always deduplicate your incoming CDC batch on the primary key before MERGE so at most one source row matches any target row.',
+          'Partition / Cluster Pruning in MERGE: Include clustering or partition predicates in the ON clause (e.g., ON t.id = s.id AND t.event_date >= current_date() - 7) so Delta skips unrelated files during the join.'
+        ],
+        sqlSnippet: `-- Idempotent SCD Type 1 Upsert with Out-of-Order Protection
+WITH latest_cdc AS (
+  SELECT *
+  FROM main.bronze.customer_events
+  QUALIFY ROW_NUMBER() OVER (
+    PARTITION BY customer_id ORDER BY event_ts DESC
+  ) = 1
+)
+MERGE INTO main.silver.customers AS target
+USING latest_cdc AS source
+ON target.customer_id = source.customer_id
+WHEN MATCHED AND source.op = 'DELETE' THEN DELETE
+WHEN MATCHED AND source.event_ts > target.updated_at THEN
+  UPDATE SET
+    target.tier = source.tier,
+    target.city = source.city,
+    target.updated_at = source.event_ts
+WHEN NOT MATCHED AND source.op != 'DELETE' THEN
+  INSERT (customer_id, tier, city, updated_at)
+  VALUES (source.customer_id, source.tier, source.city, source.event_ts);`,
+        pysparkSnippet: `from delta.tables import DeltaTable
+from pyspark.sql import Window, functions as F
+
+w = Window.partitionBy("customer_id").orderBy(F.col("event_ts").desc())
+deduped_df = (spark.table("main.bronze.customer_events")
+              .withColumn("rn", F.row_number().over(w))
+              .filter("rn = 1").drop("rn"))
+
+target_tbl = DeltaTable.forName(spark, "main.silver.customers")
+(target_tbl.alias("t")
+  .merge(deduped_df.alias("s"), "t.customer_id = s.customer_id")
+  .whenMatchedDelete(condition="s.op = 'DELETE'")
+  .whenMatchedUpdateAll(condition="s.event_ts > t.updated_at")
+  .whenNotMatchedInsertAll(condition="s.op != 'DELETE'")
+  .execute())`,
+        interviewTrap: 'Trap: Updating a target row unconditionally on WHEN MATCHED without checking source.event_ts > target.updated_at. If an older delayed message arrives after a newer one, unconditional updates overwrite fresh data with stale data!',
+        docUrl: 'https://docs.databricks.com/aws/en/sql/language-manual/delta-merge-into',
+        docLabel: 'Databricks Docs: MERGE INTO Reference'
+      },
+      {
+        id: 'sql-windows',
+        title: 'Core SQL: Window Functions, Framing & QUALIFY',
+        category: 'Core SQL',
+        readTime: '6 min',
+        summary: 'Mastering ranking (ROW_NUMBER, RANK, DENSE_RANK), analytic offsets (LAG, LEAD), rolling frames (ROWS vs RANGE), and Databricks QUALIFY.',
+        whyItMatters: 'At least 50% of SQL coding interview questions test window functions—especially top-N per group, consecutive streaks (gaps & islands), and rolling averages.',
+        keyPoints: [
+          'ROW_NUMBER vs RANK vs DENSE_RANK: For values [100, 100, 90]: ROW_NUMBER assigns (1, 2, 3); RANK assigns (1, 1, 3—skips 2); DENSE_RANK assigns (1, 1, 2—no gap).',
+          'The QUALIFY Clause: In Databricks SQL, QUALIFY filters the results of window functions directly in the same SELECT block (evaluated after WINDOW functions), eliminating verbose wrapper CTEs.',
+          'ROWS BETWEEN vs RANGE BETWEEN: ROWS counts physical rows before/after the current row; RANGE evaluates logical value offsets (and merges duplicate ORDER BY values together by default!). When an ORDER BY is specified without a frame, the default frame is RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW.',
+          'LAST_VALUE Gotcha: Because the default window frame stops at CURRENT ROW, LAST_VALUE(col) returns the current row unless you explicitly specify ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING.'
+        ],
+        sqlSnippet: `-- 1. Top-2 highest-paid employees per department (including ties) with QUALIFY
+SELECT
+  dept_id, emp_name, salary,
+  DENSE_RANK() OVER (PARTITION BY dept_id ORDER BY salary DESC) AS dept_rank
+FROM main.hr.employees
+QUALIFY dept_rank <= 2;
+
+-- 2. 7-Row Rolling Average & Day-over-Day Delta using LAG()
+SELECT
+  store_id,
+  sale_date,
+  daily_rev,
+  daily_rev - LAG(daily_rev, 1, 0) OVER (
+    PARTITION BY store_id ORDER BY sale_date
+  ) AS dod_change,
+  ROUND(AVG(daily_rev) OVER (
+    PARTITION BY store_id
+    ORDER BY sale_date
+    ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+  ), 2) AS rolling_7d_avg
+FROM main.gold.daily_store_sales;`,
+        pysparkSnippet: `from pyspark.sql import Window, functions as F
+
+w_rank = Window.partitionBy("dept_id").orderBy(F.col("salary").desc())
+w_roll = (Window.partitionBy("store_id")
+          .orderBy("sale_date")
+          .rowsBetween(-6, Window.currentRow))
+
+df_ranked = (df_emp
+  .withColumn("dept_rank", F.dense_rank().over(w_rank))
+  .filter("dept_rank <= 2"))`,
+        interviewTrap: 'Trap: Using SUM(amount) OVER (PARTITION BY user_id ORDER BY tx_date) when two transactions share the exact same tx_date. Because the default frame is RANGE, both rows on the same date get the combined sum of that date! Add ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW for deterministic row-by-row running totals.',
+        docUrl: 'https://docs.databricks.com/aws/en/dashboards/manage/data-modeling/custom-calculations/function-reference',
+        docLabel: 'Databricks Docs: Analytic Window Functions'
+      },
+      {
+        id: 'sql-ctes-joins',
+        title: 'Core SQL: CTEs, Join Strategies & Fixing Data Skew',
+        category: 'Core SQL',
+        readTime: '6 min',
+        summary: 'Writing modular CTEs, recursive hierarchy queries, understanding Broadcast vs Sort-Merge Joins, and resolving Spark SQL skew.',
+        whyItMatters: 'Senior interviews bridge SQL syntax and distributed execution: "Your SQL query is stuck at 199/200 tasks in Spark UI—what is happening and how do you fix it?"',
+        keyPoints: [
+          'Common Table Expressions (WITH & WITH RECURSIVE): Improve readability and modularity. Databricks SQL also supports WITH RECURSIVE for org charts, bill-of-materials, and graph path traversal.',
+          'Broadcast Hash Join (BHJ): When one side of a join is small (default <= 10MB, up to ~100MB with tuning), Spark broadcasts it to every executor, avoiding a network shuffle of the large fact table.',
+          'Shuffle Sort-Merge Join (SMJ): Default for two large tables; hashes join keys across partitions and sorts both sides. Vulnerable to Data Skew if one key (like NULL or customer_id = 0) has millions of rows.',
+          'Fixing Skew: Enable Adaptive Query Execution (AQE handles skew automatically by splitting skewed partitions), filter out NULL join keys early, or use Broadcast hints /*+ BROADCAST(dim) */.'
+        ],
+        sqlSnippet: `-- 1. Recursive CTE to traverse manager hierarchy levels
+WITH RECURSIVE org_hierarchy AS (
+  -- Anchor member: CEO / top-level leaders
+  SELECT emp_id, emp_name, manager_id, 1 AS org_level
+  FROM main.hr.employees
+  WHERE manager_id IS NULL
+  UNION ALL
+  -- Recursive member
+  SELECT e.emp_id, e.emp_name, e.manager_id, h.org_level + 1
+  FROM main.hr.employees e
+  JOIN org_hierarchy h ON e.manager_id = h.emp_id
+  WHERE h.org_level < 10
+)
+SELECT * FROM org_hierarchy;
+
+-- 2. Explicit Broadcast Join & Null-SafeSkew Avoidance
+SELECT /*+ BROADCAST(d) */
+  f.order_id, f.amount, d.store_region
+FROM main.silver.fact_orders f
+JOIN main.silver.dim_stores d
+  ON f.store_id = d.store_id
+WHERE f.store_id IS NOT NULL;`,
+        pysparkSnippet: `from pyspark.sql import functions as F
+
+# Broadcast small dimension table explicitly
+df_joined = (df_fact_orders
+  .filter(F.col("store_id").isNotNull())
+  .join(F.broadcast(df_dim_stores), on="store_id", how="inner"))
+
+# Check physical plan for BroadcastHashJoin vs SortMergeJoin
+df_joined.explain("formatted")`,
+        interviewTrap: 'Trap: Using NOT IN (SELECT id FROM table_b) when table_b.id can contain NULLs. In three-valued SQL logic, x NOT IN (1, 2, NULL) evaluates to UNKNOWN and returns 0 rows! Always use NOT EXISTS or a LEFT ANTI JOIN instead.',
+        docUrl: 'https://docs.databricks.com/aws/en/sql/language-manual/sql-ref-syntax-qry-select-cte',
+        docLabel: 'Databricks Docs: Common Table Expression (CTE)'
+      },
+      {
+        id: 'unity-catalog',
+        title: 'Unity Catalog, 3-Level Namespace & Data Governance',
+        category: 'Databricks Lakehouse',
+        readTime: '5 min',
+        summary: 'Securing tables, volumes, and views across workspaces with catalog.schema.table, row/column security, and automated lineage.',
+        whyItMatters: 'Enterprise data engineering interviews always ask how you isolate dev/staging/prod environments and protect PII (GDPR/HIPAA) in a shared Lakehouse.',
+        keyPoints: [
+          'Three-Level Namespace (catalog.schema.table): Replaces legacy Hive Metastore. Best practice is environment isolation by catalog (e.g., prod_catalog.silver.orders vs dev_catalog.silver.orders).',
+          'Privilege Inheritance & Storage Credentials: Access is granted via ANSI SQL (GRANT USE CATALOG, USE SCHEMA, SELECT ON...). External Locations and Volumes abstract cloud IAM roles away from end users.',
+          'Row Filters & Column Masks: Attach SQL UDFs directly to table definitions (ALTER TABLE ... SET ROW FILTER / SET MASK) instead of maintaining dozens of duplicate dynamic views.',
+          'System Tables (system.access.audit, system.billing.usage): Built-in Delta tables for querying lineage, audit logs, and DBU consumption with standard SQL.'
+        ],
+        sqlSnippet: `-- 1. Grant least-privilege access in Unity Catalog
+GRANT USE CATALOG ON CATALOG prod_lakehouse TO \`data_analysts\`;
+GRANT USE SCHEMA ON SCHEMA prod_lakehouse.gold TO \`data_analysts\`;
+GRANT SELECT ON SCHEMA prod_lakehouse.gold TO \`data_analysts\`;
+
+-- 2. Attach a native Row Filter by region
+CREATE FUNCTION prod_lakehouse.security.region_filter(user_region STRING)
+RETURN is_account_group_member('global_execs') OR user_region = 'EMEA';
+
+ALTER TABLE prod_lakehouse.gold.customer_sales
+SET ROW FILTER prod_lakehouse.security.region_filter ON (region);`,
+        pysparkSnippet: `# Query Unity Catalog automated table lineage via system tables
+df_lineage = spark.sql("""
+  SELECT
+    source_table_full_name,
+    target_table_full_name,
+    event_time
+  FROM system.access.table_lineage
+  WHERE target_table_full_name = 'prod_lakehouse.gold.customer_sales'
+  ORDER BY event_time DESC
+  LIMIT 20
+""")`,
+        interviewTrap: 'Trap: Granting SELECT ON TABLE to a group without granting USE CATALOG and USE SCHEMA on the parent catalog and schema. In Unity Catalog, users need traversal permission (USE CATALOG + USE SCHEMA) in addition to SELECT.',
+        docUrl: 'https://docs.databricks.com/aws/en/data-governance/unity-catalog/',
+        docLabel: 'Databricks Docs: What is Unity Catalog?'
+      }
+    ];
+
+    // ==================== 6 HANDS-ON CODING LAB CHALLENGES ====================
+    const codingLabs = [
+      {
+        id: 'lab-dedup-qualify',
+        title: '1. Deduplicate CDC Events with QUALIFY',
+        category: 'Core SQL',
+        lang: 'databricks_sql.sql',
+        scenario: 'Your Bronze table (bronze.order_events) receives duplicate and out-of-order status updates from Kafka. Write a Databricks SQL query that returns only the single most recent event per order_id based on event_ts DESC, excluding rows where order_id is NULL.',
+        requirements: [
+          'Query from bronze.order_events and filter out NULL order_id values',
+          'Use ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY event_ts DESC)',
+          'Filter to the latest record (= 1) using QUALIFY (or a CTE)'
+        ],
+        sampleTable: `bronze.order_events
++----------+-----------+---------------------+--------+
+| order_id | status    | event_ts            | amount |
++----------+-----------+---------------------+--------+
+| 101      | CREATED   | 2026-10-29 09:00:00 | 250.00 |
+| 101      | SHIPPED   | 2026-10-29 11:30:00 | 250.00 | <-- Keep
+| 102      | CREATED   | 2026-10-29 10:15:00 | 89.50  | <-- Keep
+| NULL     | CORRUPTED | 2026-10-29 10:20:00 | 0.00   | <-- Drop
++----------+-----------+---------------------+--------+`,
+        starterCode: `-- Return only the latest event per non-null order_id
+SELECT
+  order_id,
+  status,
+  event_ts,
+  amount
+FROM bronze.order_events
+-- Add WHERE and QUALIFY clauses below:
+`,
+        hint1: 'Filter out nulls first with WHERE order_id IS NOT NULL so NULL keys are not grouped into a single partition.',
+        hint2: 'In Databricks SQL, you can write QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY event_ts DESC) = 1 directly after WHERE.',
+        solutionCode: `SELECT
+  order_id,
+  status,
+  event_ts,
+  amount
+FROM bronze.order_events
+WHERE order_id IS NOT NULL
+QUALIFY ROW_NUMBER() OVER (
+  PARTITION BY order_id
+  ORDER BY event_ts DESC
+) = 1;`,
+        checks: [
+          { label: 'Reads from bronze.order_events', regex: /bronze\.order_events/i },
+          { label: 'Filters out NULL order_id (IS NOT NULL)', regex: /order_id\s+IS\s+NOT\s+NULL/i },
+          { label: 'Uses ROW_NUMBER() window function', regex: /ROW_NUMBER\s*\(\s*\)\s*OVER/i },
+          { label: 'Partitions by order_id and orders by event_ts DESC', regex: /PARTITION\s+BY\s+order_id[\s\S]*ORDER\s+BY\s+event_ts\s+DESC/i },
+          { label: 'Filters rank = 1 via QUALIFY or CTE WHERE clause', regex: /(QUALIFY[\s\S]*=\s*1|WHERE[\s\S]*=\s*1)/i }
+        ],
+        simulatedResult: `+----------+---------+---------------------+--------+
+| order_id | status  | event_ts            | amount |
++----------+---------+---------------------+--------+
+| 101      | SHIPPED | 2026-10-29 11:30:00 | 250.00 |
+| 102      | CREATED | 2026-10-29 10:15:00 | 89.50  |
++----------+---------+---------------------+--------+
+2 rows returned in 0.42s (Spark SQL Photon Engine)`
+      },
+      {
+        id: 'lab-rolling-window',
+        title: '2. Rolling 7-Day Average & LAG() Delta',
+        category: 'Core SQL',
+        lang: 'databricks_sql.sql',
+        scenario: 'Given daily revenue per store in gold.store_revenue(store_id, rev_date, revenue), compute each store\'s previous day revenue using LAG() and a 7-row rolling average using ROWS BETWEEN 6 PRECEDING AND CURRENT ROW.',
+        requirements: [
+          'Use LAG(revenue, 1) OVER (PARTITION BY store_id ORDER BY rev_date) as prev_day_rev',
+          'Use AVG(revenue) OVER (...) with explicit frame ROWS BETWEEN 6 PRECEDING AND CURRENT ROW as rolling_7d_avg'
+        ],
+        sampleTable: `gold.store_revenue
++----------+------------+---------+
+| store_id | rev_date   | revenue |
++----------+------------+---------+
+| DXB-01   | 2026-10-27 | 1200.00 |
+| DXB-01   | 2026-10-28 | 1500.00 |
+| DXB-01   | 2026-10-29 | 1800.00 |
++----------+------------+---------+`,
+        starterCode: `SELECT
+  store_id,
+  rev_date,
+  revenue,
+  -- 1. Compute prev_day_rev using LAG():
+  
+  -- 2. Compute rolling_7d_avg using AVG() with ROWS BETWEEN 6 PRECEDING AND CURRENT ROW:
+  
+FROM gold.store_revenue;`,
+        hint1: 'Both window specifications should partition by store_id and order by rev_date ascending.',
+        hint2: 'Use ROWS BETWEEN 6 PRECEDING AND CURRENT ROW inside the AVG(revenue) OVER (...) window specification.',
+        solutionCode: `SELECT
+  store_id,
+  rev_date,
+  revenue,
+  LAG(revenue, 1) OVER (
+    PARTITION BY store_id
+    ORDER BY rev_date
+  ) AS prev_day_rev,
+  AVG(revenue) OVER (
+    PARTITION BY store_id
+    ORDER BY rev_date
+    ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+  ) AS rolling_7d_avg
+FROM gold.store_revenue;`,
+        checks: [
+          { label: 'Uses LAG(revenue...) analytic window function', regex: /LAG\s*\(\s*revenue/i },
+          { label: 'Partitions window by store_id and orders by rev_date', regex: /PARTITION\s+BY\s+store_id[\s\S]*ORDER\s+BY\s+rev_date/i },
+          { label: 'Uses AVG(revenue) window function', regex: /AVG\s*\(\s*revenue\s*\)\s*OVER/i },
+          { label: 'Specifies explicit frame ROWS BETWEEN 6 PRECEDING AND CURRENT ROW', regex: /ROWS\s+BETWEEN\s+6\s+PRECEDING\s+AND\s+CURRENT\s+ROW/i }
+        ],
+        simulatedResult: `+----------+------------+---------+--------------+----------------+
+| store_id | rev_date   | revenue | prev_day_rev | rolling_7d_avg |
++----------+------------+---------+--------------+----------------+
+| DXB-01   | 2026-10-27 | 1200.00 | NULL         | 1200.00        |
+| DXB-01   | 2026-10-28 | 1500.00 | 1200.00      | 1350.00        |
+| DXB-01   | 2026-10-29 | 1800.00 | 1500.00      | 1500.00        |
++----------+------------+---------+--------------+----------------+`
+      },
+      {
+        id: 'lab-delta-merge',
+        title: '3. Idempotent Delta MERGE INTO Upsert',
+        category: 'ETL Pipelines',
+        lang: 'delta_merge.sql',
+        scenario: 'Write a Delta Lake MERGE INTO statement to synchronize silver.customers (alias t) from staging.customer_updates (alias s) on customer_id. Delete matched rows if s.op = \'DELETE\', update matched rows only if s.updated_at > t.updated_at, and insert unmatched rows when s.op != \'DELETE\'.',
+        requirements: [
+          'Use MERGE INTO silver.customers t USING staging.customer_updates s ON t.customer_id = s.customer_id',
+          'Include WHEN MATCHED AND s.op = \'DELETE\' THEN DELETE',
+          'Include WHEN MATCHED AND s.updated_at > t.updated_at THEN UPDATE SET *',
+          'Include WHEN NOT MATCHED AND s.op != \'DELETE\' THEN INSERT *'
+        ],
+        sampleTable: `Target: silver.customers (customer_id, name, tier, updated_at)
+Source: staging.customer_updates (customer_id, name, tier, updated_at, op)`,
+        starterCode: `MERGE INTO silver.customers AS t
+USING staging.customer_updates AS s
+ON t.customer_id = s.customer_id
+-- Complete the WHEN MATCHED and WHEN NOT MATCHED clauses:
+`,
+        hint1: 'Delta Lake allows multiple WHEN MATCHED clauses—place the DELETE condition first, followed by the out-of-order safe UPDATE condition.',
+        hint2: 'Databricks Delta SQL supports shorthand UPDATE SET * and INSERT * when schemas align.',
+        solutionCode: `MERGE INTO silver.customers AS t
+USING staging.customer_updates AS s
+ON t.customer_id = s.customer_id
+WHEN MATCHED AND s.op = 'DELETE' THEN
+  DELETE
+WHEN MATCHED AND s.updated_at > t.updated_at THEN
+  UPDATE SET *
+WHEN NOT MATCHED AND s.op != 'DELETE' THEN
+  INSERT *;`,
+        checks: [
+          { label: 'MERGE INTO silver.customers USING staging.customer_updates', regex: /MERGE\s+INTO\s+silver\.customers[\s\S]*USING\s+staging\.customer_updates/i },
+          { label: 'Matches ON t.customer_id = s.customer_id', regex: /ON\s+t\.customer_id\s*=\s*s\.customer_id/i },
+          { label: 'Handles DELETE operation when matched', regex: /WHEN\s+MATCHED[\s\S]*DELETE/i },
+          { label: 'Guards UPDATE with s.updated_at > t.updated_at timestamp check', regex: /s\.updated_at\s*>\s*t\.updated_at[\s\S]*UPDATE/i },
+          { label: 'Inserts new rows with WHEN NOT MATCHED', regex: /WHEN\s+NOT\s+MATCHED[\s\S]*INSERT/i }
+        ],
+        simulatedResult: `num_affected_rows: 142 | num_updated_rows: 89 | num_deleted_rows: 12 | num_inserted_rows: 41
+Delta Commit Version 48 written to silver.customers/_delta_log/00000000000000000048.json`
+      },
+      {
+        id: 'lab-autoloader-pyspark',
+        title: '4. PySpark Auto Loader Bronze Pipeline',
+        category: 'ETL Pipelines',
+        lang: 'bronze_autoloader.py',
+        scenario: 'Complete the PySpark Structured Streaming job that uses Databricks Auto Loader ("cloudFiles") to ingest JSON files from s3://raw-bucket/events/, stores its inferred schema in /Volumes/main/ops/schema, and writes incrementally to main.bronze.events using trigger(availableNow=True).',
+        requirements: [
+          'Use spark.readStream.format("cloudFiles")',
+          'Set option("cloudFiles.format", "json") and option("cloudFiles.schemaLocation", ...)',
+          'Configure writeStream with option("checkpointLocation", ...) and trigger(availableNow=True)'
+        ],
+        sampleTable: `Source path: s3://raw-bucket/events/
+Target Delta Table: main.bronze.events`,
+        starterCode: `df_raw = (
+    spark.readStream
+    # 1. Configure Auto Loader format and options:
+    
+    .load("s3://raw-bucket/events/")
+)
+
+query = (
+    df_raw.writeStream
+    # 2. Configure checkpointLocation, availableNow trigger, and target table:
+    
+)`,
+        hint1: 'Pass "cloudFiles" to .format() on readStream, then specify "cloudFiles.format" as "json" and "cloudFiles.schemaLocation".',
+        hint2: 'On writeStream, chain .option("checkpointLocation", "/Volumes/main/ops/chk").trigger(availableNow=True).toTable("main.bronze.events").',
+        solutionCode: `df_raw = (
+    spark.readStream
+    .format("cloudFiles")
+    .option("cloudFiles.format", "json")
+    .option("cloudFiles.schemaLocation", "/Volumes/main/ops/schema")
+    .load("s3://raw-bucket/events/")
+)
+
+query = (
+    df_raw.writeStream
+    .option("checkpointLocation", "/Volumes/main/ops/chk")
+    .trigger(availableNow=True)
+    .toTable("main.bronze.events")
+)`,
+        checks: [
+          { label: 'Uses spark.readStream.format("cloudFiles")', regex: /format\s*\(\s*["']cloudFiles["']\s*\)/ },
+          { label: 'Sets cloudFiles.format option to json', regex: /cloudFiles\.format["']\s*,\s*["']json["']/ },
+          { label: 'Sets cloudFiles.schemaLocation option', regex: /cloudFiles\.schemaLocation/ },
+          { label: 'Sets checkpointLocation on writeStream', regex: /checkpointLocation/ },
+          { label: 'Uses trigger(availableNow=True) and writes to main.bronze.events', regex: /trigger\s*\(\s*availableNow\s*=\s*True\s*\)[\s\S]*toTable\s*\(\s*["']main\.bronze\.events["']\s*\)/ }
+        ],
+        simulatedResult: `StreamingQuery [id = 9a8f-44c1, runId = b712-001]
+Trigger.AvailableNow processed 18,450 new JSON files in 3 micro-batches.
+Committed 1,240,000 rows to main.bronze.events. Stream stopped cleanly.`
+      },
+      {
+        id: 'lab-dlt-expectations',
+        title: '5. Lakeflow / DLT Data Quality Expectations',
+        category: 'Databricks Lakehouse',
+        lang: 'dlt_pipeline.sql',
+        scenario: 'Write a Lakeflow Declarative Pipeline (DLT) SQL definition for STREAMING TABLE silver_payments reading from STREAM(LIVE.bronze_payments). Add a constraint named valid_amount that enforces amount > 0 and drops invalid rows on violation.',
+        requirements: [
+          'Use CREATE OR REFRESH STREAMING TABLE silver_payments',
+          'Define CONSTRAINT valid_amount EXPECT (amount > 0) ON VIOLATION DROP ROW',
+          'Read incrementally using FROM STREAM(LIVE.bronze_payments)'
+        ],
+        sampleTable: `Upstream: LIVE.bronze_payments (payment_id, user_id, amount, payment_ts)
+Target: silver_payments (drops rows where amount <= 0 or NULL)`,
+        starterCode: `CREATE OR REFRESH STREAMING TABLE silver_payments (
+  -- Define CONSTRAINT valid_amount here:
+  
+)
+AS SELECT
+  payment_id,
+  user_id,
+  amount,
+  payment_ts
+-- Read from streaming upstream table:
+`,
+        hint1: 'DLT SQL constraints follow the pattern: CONSTRAINT <name> EXPECT (<boolean_condition>) ON VIOLATION DROP ROW.',
+        hint2: 'To read a streaming source in DLT SQL, wrap the table in STREAM(LIVE.bronze_payments).',
+        solutionCode: `CREATE OR REFRESH STREAMING TABLE silver_payments (
+  CONSTRAINT valid_amount EXPECT (amount > 0) ON VIOLATION DROP ROW
+)
+AS SELECT
+  payment_id,
+  user_id,
+  amount,
+  payment_ts
+FROM STREAM(LIVE.bronze_payments);`,
+        checks: [
+          { label: 'Declares CREATE OR REFRESH STREAMING TABLE silver_payments', regex: /CREATE\s+OR\s+REFRESH\s+STREAMING\s+TABLE\s+silver_payments/i },
+          { label: 'Defines CONSTRAINT valid_amount EXPECT (amount > 0)', regex: /CONSTRAINT\s+valid_amount\s+EXPECT\s*\(\s*amount\s*>\s*0\s*\)/i },
+          { label: 'Specifies ON VIOLATION DROP ROW policy', regex: /ON\s+VIOLATION\s+DROP\s+ROW/i },
+          { label: 'Reads incrementally from STREAM(LIVE.bronze_payments)', regex: /FROM\s+STREAM\s*\(\s*LIVE\.bronze_payments\s*\)/i }
+        ],
+        simulatedResult: `Pipeline Update Succeeded: Table 'silver_payments' refreshed.
+Data Quality Metrics (valid_amount): 99.4% passed (48,210 written, 290 dropped).`
+      },
+      {
+        id: 'lab-sql-anti-join',
+        title: '6. Null-Safe Orphan Detection & CTEs',
+        category: 'Core SQL',
+        lang: 'orphan_check.sql',
+        scenario: 'In data quality reconciliation, you need to find all orders in silver.orders (alias o) from 2026 whose customer_id does NOT exist in silver.customers (alias c). Because silver.customers might contain NULLs in staging, avoid NOT IN and use a CTE + LEFT ANTI JOIN (or NOT EXISTS).',
+        requirements: [
+          'Define a CTE recent_orders filtering silver.orders where order_date >= \'2026-01-01\'',
+          'Use LEFT ANTI JOIN (or NOT EXISTS) against silver.customers on customer_id'
+        ],
+        sampleTable: `silver.orders (order_id, customer_id, order_date, amount)
+silver.customers (customer_id, customer_name)`,
+        starterCode: `WITH recent_orders AS (
+  SELECT order_id, customer_id, order_date, amount
+  FROM silver.orders
+  WHERE order_date >= '2026-01-01'
+)
+-- Write a LEFT ANTI JOIN or NOT EXISTS query to return orphan orders:
+`,
+        hint1: 'Spark SQL natively supports LEFT ANTI JOIN: SELECT o.* FROM recent_orders o LEFT ANTI JOIN silver.customers c ON o.customer_id = c.customer_id.',
+        hint2: 'Alternatively, use WHERE NOT EXISTS (SELECT 1 FROM silver.customers c WHERE c.customer_id = o.customer_id).',
+        solutionCode: `WITH recent_orders AS (
+  SELECT order_id, customer_id, order_date, amount
+  FROM silver.orders
+  WHERE order_date >= '2026-01-01'
+)
+SELECT
+  o.order_id,
+  o.customer_id,
+  o.order_date,
+  o.amount
+FROM recent_orders o
+LEFT ANTI JOIN silver.customers c
+  ON o.customer_id = c.customer_id;`,
+        checks: [
+          { label: 'Defines CTE recent_orders filtering order_date >= 2026-01-01', regex: /WITH\s+recent_orders\s+AS[\s\S]*2026-01-01/i },
+          { label: 'Uses null-safe LEFT ANTI JOIN or NOT EXISTS (avoids NOT IN)', regex: /(LEFT\s+ANTI\s+JOIN|NOT\s+EXISTS)/i },
+          { label: 'Joins on customer_id between orders and silver.customers', regex: /customer_id\s*=\s*[a-zA-Z0-9_]+\.customer_id/i }
+        ],
+        simulatedResult: `+----------+-------------+------------+--------+
+| order_id | customer_id | order_date | amount |
++----------+-------------+------------+--------+
+| 99041    | CUST-8821   | 2026-03-14 | 410.00 |
+| 99108    | CUST-9014   | 2026-07-02 | 125.50 |
++----------+-------------+------------+--------+
+Physical Plan: BroadcastHashJoin [customer_id], [customer_id], LeftAnti, BuildRight`
+      }
+    ];
+
+    // ==================== 12 SCENARIO QUIZ QUESTIONS ====================
+    const quizQuestions = [
+      {
+        id: 'q1',
+        category: 'ETL & Streaming Pipelines',
+        question: 'Your MERGE INTO statement updating silver.orders from a Bronze CDC batch fails with "DeltaUnsupportedOperationException: Cannot perform Merge as multiple source rows matched and attempted to modify the same target row." What is the cleanest fix?',
+        options: [
+          'Run OPTIMIZE and VACUUM on silver.orders before executing MERGE INTO.',
+          'Deduplicate the source batch on the merge key (e.g., using QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY event_ts DESC) = 1) before merging.',
+          'Replace MERGE INTO with INSERT OVERWRITE on the entire Silver table.',
+          'Disable ACID transactions in the Delta table properties.'
+        ],
+        correctIndex: 1,
+        explanation: 'Delta MERGE requires deterministic updates: at most one source row can match and update any target row in a single commit. Deduplicating the source CTE by primary key and latest timestamp resolves the ambiguity.'
+      },
+      {
+        id: 'q2',
+        category: 'ETL & Streaming Pipelines',
+        question: 'You have an hourly SLA to ingest new JSON files from S3 into a Bronze Delta table while minimizing DBU compute cost (avoiding a 24/7 running cluster). Which Structured Streaming trigger should you use?',
+        options: [
+          'trigger(processingTime="1 second") on an always-on all-purpose cluster',
+          'trigger(continuous="1 second")',
+          'trigger(availableNow=True) scheduled via a Databricks Job Cluster',
+          'Manual spark.read.json() overwriting the entire table every hour'
+        ],
+        correctIndex: 2,
+        explanation: 'trigger(availableNow=True) combines the incremental checkpoint state of Structured Streaming / Auto Loader with batch cost efficiency—it processes all newly arrived files in parallel micro-batches and terminates the job cluster automatically.'
+      },
+      {
+        id: 'q3',
+        category: 'ETL & Streaming Pipelines',
+        question: 'In a Lakeflow (Delta Live Tables) pipeline, you want rows where email IS NULL to be dropped from the target Silver table while recording the drop count in the pipeline event log, without failing the job. Which syntax is correct?',
+        options: [
+          'CONSTRAINT valid_email EXPECT (email IS NOT NULL) ON VIOLATION FAIL UPDATE',
+          'CONSTRAINT valid_email EXPECT (email IS NOT NULL) ON VIOLATION DROP ROW',
+          'CONSTRAINT valid_email EXPECT (email IS NOT NULL)',
+          'WHERE email IS NOT NULL (which automatically logs DLT expectation metrics)'
+        ],
+        correctIndex: 1,
+        explanation: 'ON VIOLATION DROP ROW filters out violating records before writing to the target table and logs exact pass/drop counts in the DLT event log. Omitting ON VIOLATION keeps the bad rows, and using a raw WHERE clause does not log expectation metrics.'
+      },
+      {
+        id: 'q4',
+        category: 'ETL & Streaming Pipelines',
+        question: 'When ingesting semi-structured JSON with Auto Loader (cloudFiles), an upstream team adds a new field "loyalty_points" without warning. With default Auto Loader settings on a Delta target, what happens?',
+        options: [
+          'All old data in the Bronze table is deleted.',
+          'Auto Loader defaults to cloudFiles.schemaEvolutionMode = "addNewColumns": it detects the new column, updates the schema location, and evolves the target table once restarted (with mergeSchema enabled).',
+          'Auto Loader ignores all JSON files and halts forever without logging.',
+          'Delta Lake converts the table into a CSV file.'
+        ],
+        correctIndex: 1,
+        explanation: 'When schema inference is enabled, Auto Loader defaults to addNewColumns mode—capturing unanticipated fields safely in _rescued_data or evolving the schema automatically without data loss.'
+      },
+      {
+        id: 'q5',
+        category: 'Databricks & Delta Lake',
+        question: 'How does Delta Lake achieve ACID isolation and fast query performance over cloud object storage?',
+        options: [
+          'By storing all rows inside a relational PostgreSQL database instead of Parquet.',
+          'By maintaining an atomic transaction log (_delta_log) of JSON commits and checkpoints containing file-level additions, logical removals, and min/max column statistics.',
+          'By locking the entire AWS S3 bucket for 10 minutes whenever a query runs.',
+          'By converting Parquet files into uncompressed text files during queries.'
+        ],
+        correctIndex: 1,
+        explanation: 'The _delta_log directory is the single source of truth for which Parquet files belong to the current table version, enabling optimistic concurrency control, Time Travel, and min/max data skipping.'
+      },
+      {
+        id: 'q6',
+        category: 'Databricks & Delta Lake',
+        question: 'Why does Databricks recommend Liquid Clustering (CLUSTER BY) over traditional Hive-style PARTITION BY + ZORDER BY for new large Delta tables?',
+        options: [
+          'Liquid Clustering only works on CSV files.',
+          'Liquid Clustering avoids over-partitioning (the small-file problem), clusters incrementally on write, and allows changing clustering keys via ALTER TABLE without rewriting existing data.',
+          'Liquid Clustering disables the _delta_log to save storage.',
+          'Hive partitioning is limited to tables under 1,000 rows.'
+        ],
+        correctIndex: 1,
+        explanation: 'Traditional PARTITION BY physically splits directories and cannot be changed without a full table rewrite. Liquid Clustering uses Hilbert curves to co-locate data across up to 4 keys flexibly and incrementally.'
+      },
+      {
+        id: 'q7',
+        category: 'Databricks & Delta Lake',
+        question: 'A junior engineer runs DELETE FROM silver.events WHERE event_date < "2025-01-01" and notices cloud storage costs did not drop immediately. Why?',
+        options: [
+          'DELETE in Delta Lake is a logical operation that writes tombstone (remove) entries in _delta_log so Time Travel still works; physical file deletion only happens after VACUUM runs past the retention window.',
+          'DELETE statements in Delta Lake are ignored unless followed by COMMIT WORK.',
+          'Cloud providers never update storage metrics.',
+          'Delta Lake duplicates the entire table every time DELETE runs.'
+        ],
+        correctIndex: 0,
+        explanation: 'Delta keeps unreferenced Parquet files until VACUUM is executed (default retention 7 days / 168 hours) so concurrent readers and Time Travel queries (VERSION AS OF) remain valid.'
+      },
+      {
+        id: 'q8',
+        category: 'Databricks & Delta Lake',
+        question: 'In Unity Catalog, what happens to the underlying Parquet data in cloud object storage when you run DROP TABLE on a Managed Table vs an External Table?',
+        options: [
+          'Both Managed and External tables keep their cloud files forever.',
+          'Dropping a Managed Table deletes both the metadata and the underlying cloud data files (after retention); dropping an External Table removes only the catalog metadata while leaving the cloud files intact.',
+          'Dropping an External Table deletes the entire S3 bucket.',
+          'Managed Tables cannot store Parquet data.'
+        ],
+        correctIndex: 1,
+        explanation: 'Unity Catalog owns both the metadata and storage lifecycle for Managed Tables, whereas External Tables register metadata pointing to an external cloud storage path whose files persist after DROP TABLE.'
+      },
+      {
+        id: 'q9',
+        category: 'Core SQL & Performance',
+        question: 'A department has employees with salaries: [$120k, $120k, $100k]. What values do ROW_NUMBER(), RANK(), and DENSE_RANK() ordered by salary DESC assign to the $100k employee?',
+        options: [
+          'ROW_NUMBER: 2, RANK: 2, DENSE_RANK: 2',
+          'ROW_NUMBER: 3, RANK: 3, DENSE_RANK: 2',
+          'ROW_NUMBER: 3, RANK: 2, DENSE_RANK: 3',
+          'ROW_NUMBER: 1, RANK: 1, DENSE_RANK: 1'
+        ],
+        correctIndex: 1,
+        explanation: 'The two $120k ties receive (1, 2) in ROW_NUMBER, (1, 1) in RANK, and (1, 1) in DENSE_RANK. Therefore the next distinct value ($100k) gets row 3 in ROW_NUMBER, rank 3 in RANK (skips 2), and rank 2 in DENSE_RANK (no gap).'
+      },
+      {
+        id: 'q10',
+        category: 'Core SQL & Performance',
+        question: 'Why does SELECT * FROM orders WHERE customer_id NOT IN (SELECT customer_id FROM blacklist) return 0 rows if blacklist contains even a single NULL customer_id?',
+        options: [
+          'Spark SQL does not support subqueries inside WHERE.',
+          'In SQL three-valued logic, x NOT IN (a, b, NULL) expands to x != a AND x != b AND x != NULL, which evaluates to UNKNOWN (falsy) for every row! Use LEFT ANTI JOIN or NOT EXISTS instead.',
+          'NOT IN automatically truncates the orders table.',
+          'NULL values are treated as infinity in NOT IN.'
+        ],
+        correctIndex: 1,
+        explanation: 'Any equality/inequality comparison with NULL yields UNKNOWN. Because NOT IN chains conditions with AND, a single NULL in the subquery poisons the entire predicate. LEFT ANTI JOIN and NOT EXISTS handle NULLs safely.'
+      },
+      {
+        id: 'q11',
+        category: 'Core SQL & Performance',
+        question: 'During a join between a 2 TB fact table and a 400 GB dimension table, 199 Spark tasks finish in 30 seconds while 1 task runs for 45 minutes. What is the root cause and best fix?',
+        options: [
+          'Network cable failure; restart the workspace.',
+          'Data Skew on the join key (e.g., many NULLs or a hot key hashing to the same reducer partition). Filter out NULL keys before joining, ensure Adaptive Query Execution (spark.sql.adaptive.skewJoin.enabled) is true, or salt the skewed key.',
+          'Too many columns in SELECT; remove aliases.',
+          'Delta Lake does not allow joins over 100 GB.'
+        ],
+        correctIndex: 1,
+        explanation: 'In a Sort-Merge Join, all records with the same join key hash to the exact same partition. Separating NULLs or using AQE skew join optimization splits the straggler partition across multiple executors.'
+      },
+      {
+        id: 'q12',
+        category: 'Core SQL & Performance',
+        question: 'When writing a window function with an ORDER BY clause and no explicit frame specification, what default window frame does ANSI / Spark SQL apply?',
+        options: [
+          'ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING',
+          'RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW',
+          'ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING',
+          'No rows are included in the window.'
+        ],
+        correctIndex: 1,
+        explanation: 'When ORDER BY is present without a frame clause, SQL defaults to RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW. This is why LAST_VALUE() requires an explicit UNBOUNDED FOLLOWING frame, and why duplicate order keys get merged in running sums.'
+      }
+    ];
+
+    // ==================== 16 HIGH-YIELD FLASHCARDS ====================
+    const flashcardsData = [
+      {
+        id: 'fc1',
+        category: 'ETL Pipelines',
+        prompt: 'What is the purpose of the _rescued_data column in Auto Loader?',
+        answer: 'It captures any fields that do not match the inferred or expected schema (such as new columns, type mismatches, or malformed JSON fields) along with the source file path, preventing pipeline failures or silent data loss.',
+        code: `.option("cloudFiles.schemaEvolutionMode", "rescue")\n.option("rescuedDataColumn", "_rescued_data")`
+      },
+      {
+        id: 'fc2',
+        category: 'Databricks Lakehouse',
+        prompt: 'How do Delta Lake Deletion Vectors accelerate DELETE, UPDATE, and MERGE operations?',
+        answer: 'Instead of immediately rewriting an entire multi-hundred-MB Parquet file when a single row is deleted or updated (Copy-on-Write), Delta writes a compact roaring bitmap marking the invalidated row offset (Merge-on-Read) and defers physical compaction to OPTIMIZE.',
+        code: `ALTER TABLE main.silver.orders\nSET TBLPROPERTIES ('delta.enableDeletionVectors' = true);`
+      },
+      {
+        id: 'fc3',
+        category: 'Core SQL',
+        prompt: 'What does the QUALIFY clause do in Databricks SQL?',
+        answer: 'QUALIFY filters the output of Window functions in the same SELECT query block (analogous to how HAVING filters GROUP BY aggregates), removing the need to wrap ROW_NUMBER() or RANK() inside a subquery.',
+        code: `SELECT user_id, event_ts\nFROM bronze.events\nQUALIFY ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY event_ts DESC) = 1;`
+      },
+      {
+        id: 'fc4',
+        category: 'ETL Pipelines',
+        prompt: 'What is the difference between SCD Type 1 and SCD Type 2 in data warehousing?',
+        answer: 'SCD Type 1 overwrites old attribute values in place (retaining only current state). SCD Type 2 preserves full historical versions by expiring the prior row (is_current = false, end_date = change_ts) and inserting a new row.',
+        code: `-- Lakeflow / DLT declarative SCD Type 2\nAPPLY CHANGES INTO LIVE.dim_customer\nFROM STREAM(LIVE.cdc_cust) KEYS (id) SEQUENCE BY ts\nSTORED AS SCD TYPE 2;`
+      },
+      {
+        id: 'fc5',
+        category: 'Core SQL',
+        prompt: 'In Spark SQL, when should you use a Broadcast Hash Join vs a Sort-Merge Join?',
+        answer: 'Use Broadcast Hash Join when one table is small enough to fit comfortably in executor memory (typically < 10–100 MB), eliminating a full shuffle of the large table. Use Sort-Merge Join when both tables are large.',
+        code: `SELECT /*+ BROADCAST(dim) */ f.*, dim.region\nFROM fact_sales f JOIN dim_stores dim ON f.store_id = dim.store_id;`
+      },
+      {
+        id: 'fc6',
+        category: 'Databricks Lakehouse',
+        prompt: 'What happens every 10 commits (or configurable interval) inside the _delta_log directory?',
+        answer: 'Delta Lake writes a Parquet checkpoint file (e.g., 00000000000000000010.checkpoint.parquet) that aggregates all active file actions up to that version so readers do not need to replay thousands of individual JSON files.',
+        code: `_delta_log/\n  00000000000000000009.json\n  00000000000000000010.json\n  00000000000000000010.checkpoint.parquet`
+      },
+      {
+        id: 'fc7',
+        category: 'ETL Pipelines',
+        prompt: 'Why do you need Watermarking in Spark Structured Streaming stateful operations?',
+        answer: 'Stateful operations like streaming deduplication, windowed aggregations, and stream-stream joins hold state in memory/RocksDB. A watermark defines how late data can arrive (e.g., 2 hours) so Spark can safely evict old state and prevent OutOfMemory errors.',
+        code: `df.withWatermark("event_time", "2 hours")\n  .dropDuplicatesWithinWatermark(["event_id"])`
+      },
+      {
+        id: 'fc8',
+        category: 'Core SQL',
+        prompt: 'What is the difference between UNION and UNION ALL in SQL?',
+        answer: 'UNION ALL concatenates result sets directly without deduplication (fast, no shuffle). UNION performs a DISTINCT across all columns to remove duplicate rows, triggering an expensive shuffle/sort.',
+        code: `-- Prefer UNION ALL unless deduplication across sets is required\nSELECT id FROM active_users UNION ALL SELECT id FROM archived_users;`
+      },
+      {
+        id: 'fc9',
+        category: 'Databricks Lakehouse',
+        prompt: 'What is Delta Change Data Feed (CDF) and how is it used in ETL pipelines?',
+        answer: 'When delta.enableChangeDataFeed = true is enabled on a Delta table, Delta records row-level insert, update_preimage, update_postimage, and delete events. Downstream Silver/Gold pipelines can read table_changes() to process only changed rows.',
+        code: `SELECT * FROM table_changes('main.silver.orders', 10, 20)\nWHERE _change_type IN ('insert', 'update_postimage');`
+      },
+      {
+        id: 'fc10',
+        category: 'Core SQL',
+        prompt: 'Why does LAST_VALUE(col) OVER (PARTITION BY id ORDER BY ts) often return the current row instead of the partition\'s last row?',
+        answer: 'Because adding ORDER BY sets the default window frame to RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW. To see the true final row of the partition, you must extend the frame to UNBOUNDED FOLLOWING.',
+        code: `LAST_VALUE(status) OVER (\n  PARTITION BY id ORDER BY ts\n  ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING\n)`
+      },
+      {
+        id: 'fc11',
+        category: 'Databricks Lakehouse',
+        prompt: 'What is Photon in Databricks?',
+        answer: 'Photon is Databricks\' native vectorized query engine written in C++ that accelerates SQL and DataFrame workloads (especially joins, aggregations, and Delta writes) by leveraging modern CPU SIMD instructions.',
+        code: `-- Enabled automatically on Databricks SQL Serverless Warehouses`
+      },
+      {
+        id: 'fc12',
+        category: 'ETL Pipelines',
+        prompt: 'What is Idempotency in ETL pipeline design and how do you guarantee it in Databricks?',
+        answer: 'An idempotent pipeline produces the exact same target table state whether a job runs once or is retried multiple times. Guarantee it using Delta MERGE INTO on deterministic keys, replaceWhere partition overwrites, or Structured Streaming checkpoints.',
+        code: `df.write.format("delta")\n  .mode("overwrite")\n  .option("replaceWhere", "event_date = '2026-10-29'")\n  .saveAsTable("main.silver.daily_events")`
+      },
+      {
+        id: 'fc13',
+        category: 'Core SQL',
+        prompt: 'What is the logical order of execution of SQL clauses in Databricks SQL?',
+        answer: '1. FROM / JOIN -> 2. WHERE -> 3. GROUP BY -> 4. HAVING -> 5. WINDOW functions -> 6. QUALIFY -> 7. SELECT projection -> 8. DISTINCT -> 9. ORDER BY -> 10. LIMIT.',
+        code: `-- Because QUALIFY executes at step 6 (after WINDOW), it can filter window aliases!`
+      },
+      {
+        id: 'fc14',
+        category: 'Databricks Lakehouse',
+        prompt: 'What are Unity Catalog Volumes?',
+        answer: 'Volumes are Unity Catalog objects (catalog.schema.volume_name) that govern non-tabular files (CSV, JSON, PDFs, ML artifacts, Auto Loader checkpoints) using the same 3-level namespace and GRANT permissions as tables.',
+        code: `CREATE VOLUME IF NOT EXISTS main.raw.landing_files;\n-- Path: /Volumes/main/raw/landing_files/orders.json`
+      },
+      {
+        id: 'fc15',
+        category: 'Core SQL',
+        prompt: 'How do you pivot rows into columns or unpivot columns into rows in Databricks SQL?',
+        answer: 'Use the native PIVOT clause to aggregate row values into columns (e.g., quarterly sales columns), and UNPIVOT to normalize wide columns back into key-value rows.',
+        code: `SELECT * FROM quarterly_sales\nPIVOT (SUM(amount) FOR quarter IN ('Q1', 'Q2', 'Q3', 'Q4'));`
+      },
+      {
+        id: 'fc16',
+        category: 'ETL Pipelines',
+        prompt: 'What is the difference between a Shallow Clone and a Deep Clone in Delta Lake?',
+        answer: 'SHALLOW CLONE copies only the _delta_log metadata and references the source table\'s existing Parquet files (instant, zero data copy—great for testing). DEEP CLONE copies both metadata and physical Parquet files to an independent location.',
+        code: `CREATE TABLE dev_catalog.silver.orders_test\nSHALLOW CLONE prod_catalog.silver.orders;`
+      }
+    ];
+
+    // ==================== MOCK INTERVIEW PROMPTS & RUBRICS ====================
+    const interviewPrompts = [
+      {
+        id: 'ip1',
+        title: '1. Designing an Idempotent Bronze-to-Silver CDC Pipeline',
+        topic: 'ETL & Delta Lake',
+        difficulty: 'Senior Data Engineer',
+        question: 'Suppose upstream microservices emit Change Data Capture (CDC) events (INSERT, UPDATE, DELETE) into S3 as JSON files, sometimes out of order or duplicated due to network retries. How would you architect the Bronze and Silver layers in Databricks to guarantee accuracy?',
+        hint: 'Mention Auto Loader (cloudFiles), Bronze append-only design, deduplicating source batches with ROW_NUMBER/QUALIFY, and conditional MERGE INTO (or DLT APPLY CHANGES INTO).',
+        rubricKeywords: [
+          { term: 'Auto Loader / cloudFiles', regex: /(auto\s*loader|cloudfiles)/i },
+          { term: 'Bronze append-only / raw retention', regex: /(bronze|append|raw|_rescued_data)/i },
+          { term: 'Deduplicate batch (ROW_NUMBER / QUALIFY)', regex: /(row_number|qualify|dedup)/i },
+          { term: 'MERGE INTO or APPLY CHANGES INTO', regex: /(merge\s+into|apply\s+changes|upsert)/i },
+          { term: 'Sequence / Timestamp ordering check', regex: /(timestamp|sequence|out[\s-]of[\s-]order|updated_at|event_ts)/i }
+        ],
+        modelAnswer: `I would structure this using a two-stage Medallion flow:
+1. Bronze Ingestion: Use Databricks Auto Loader (cloudFiles) with Trigger.AvailableNow (or continuous streaming) to ingest raw JSON files into an append-only Bronze Delta table. I would enable schema evolution (addNewColumns / _rescued_data) and record _metadata.file_path and ingestion_ts.
+2. Silver Deduplication & Upsert: Before merging into Silver, I would deduplicate the incoming Bronze batch per primary key using QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY sequence_ts DESC) = 1 so multiple source rows never collide in MERGE.
+3. Out-of-Order Guard: In MERGE INTO silver_table, I handle WHEN MATCHED AND s.op = 'DELETE' THEN DELETE, and on updates I guard with WHEN MATCHED AND s.sequence_ts > t.sequence_ts THEN UPDATE SET * so late-arriving older messages never overwrite newer state. Alternatively, in Lakeflow DLT, I can use APPLY CHANGES INTO ... SEQUENCE BY sequence_ts.`
+      },
+      {
+        id: 'ip2',
+        title: '2. Diagnosing & Fixing a Straggler Stage in Spark SQL Joins',
+        topic: 'Core SQL & Spark Tuning',
+        difficulty: 'Medium-Hard',
+        question: 'A nightly Databricks job joining a 1.5 TB clickstream table with a 50 GB user_sessions table hangs at 99% completion (199 of 200 tasks done, 1 task running for an hour with massive spill to disk). How do you diagnose and resolve this?',
+        hint: 'Discuss Spark UI task distribution, Data Skew on join keys, NULL key explosions, Broadcast thresholds, and Adaptive Query Execution (AQE).',
+        rubricKeywords: [
+          { term: 'Data Skew / Hot Key identification', regex: /(skew|hot\s+key|straggler|partition)/i },
+          { term: 'NULL or default key filtering', regex: /(null|is\s+not\s+null|empty|default)/i },
+          { term: 'Adaptive Query Execution (AQE)', regex: /(aqe|adaptive\s+query|skewjoin)/i },
+          { term: 'Salting or Broadcast Join alternative', regex: /(salt|broadcast|split)/i },
+          { term: 'Spark UI / Spill inspection', regex: /(spark\s+ui|spill|stage|task)/i }
+        ],
+        modelAnswer: `A single straggler task with heavy disk spill during a Sort-Merge Join is a classic symptom of Data Skew on the join key:
+1. Diagnose in Spark UI: Check the Stages tab summary metrics (75th percentile vs Max task duration/shuffle read size) and run a quick GROUP BY join_key ORDER BY count DESC LIMIT 10 to identify the skewed value.
+2. Filter Null/Default Keys: Often millions of unauthenticated clicks have session_id IS NULL or '-1'. Filtering WHERE session_id IS NOT NULL (or handling nulls in a separate UNION ALL branch) immediately eliminates the skew.
+3. Enable Adaptive Query Execution (AQE): Ensure spark.sql.adaptive.enabled and spark.sql.adaptive.skewJoin.enabled are true so Spark automatically splits skewed partitions into smaller sub-partitions at runtime.
+4. Salting / Pre-filtering: If a legitimate enterprise customer causes skew, either filter the 50 GB table down so it qualifies for a Broadcast Hash Join, or apply key salting (adding a random 0..N suffix to the hot key and replicating the matching dimension row).`
+      },
+      {
+        id: 'ip3',
+        title: '3. Optimizing Slow BI Queries on a Multi-Terabyte Delta Table',
+        topic: 'Databricks Lakehouse',
+        difficulty: 'Medium-Hard',
+        question: 'Analysts complain that dashboard queries filtering a 5 TB Gold Delta table on (event_date, customer_region, product_category) are scanning almost the entire table. How do you optimize storage layout and query execution in Databricks?',
+        hint: 'Cover small-file compaction (OPTIMIZE), Liquid Clustering (CLUSTER BY) vs Z-Ordering, data skipping statistics, Materialized Views, and Photon.',
+        rubricKeywords: [
+          { term: 'Liquid Clustering (CLUSTER BY) or Z-Order', regex: /(liquid\s+clustering|cluster\s+by|zorder|z-order)/i },
+          { term: 'OPTIMIZE / Small file compaction', regex: /(optimize|compact|small\s+files)/i },
+          { term: 'Data Skipping / Min-Max file stats', regex: /(skipping|min\/max|statistics|stats|pruning)/i },
+          { term: 'Materialized Views or Pre-aggregation', regex: /(materialized\s+view|aggregate|gold)/i },
+          { term: 'Photon / Serverless SQL Warehouse', regex: /(photon|serverless|warehouse|cache)/i }
+        ],
+        modelAnswer: `To cut full-table scans down to sub-second file pruning:
+1. Enable Liquid Clustering: Run ALTER TABLE gold.sales CLUSTER BY (event_date, customer_region, product_category) followed by OPTIMIZE. Unlike single-column Hive partitioning, Liquid Clustering co-locates multi-dimensional filter keys in the same Parquet files without creating thousands of tiny files.
+2. Verify Data Skipping Column Position: Delta collects min/max file stats on the first 32 columns by default—ensure filter columns are in the first 32 columns and predicates are sargable (avoid wrapping event_date in functions like YEAR(event_date) = 2026; use range predicates >= '2026-01-01').
+3. Materialized Views & Photon: For recurring KPI aggregations, define a Lakeflow / Databricks SQL Materialized View served on a Photon-enabled Serverless SQL Warehouse with disk caching.`
+      },
+      {
+        id: 'ip4',
+        title: '4. Implementing GDPR "Right to Be Forgotten" in a Lakehouse',
+        topic: 'Databricks & Governance',
+        difficulty: 'Senior Data Engineer',
+        question: 'How do you handle GDPR deletion requests for specific customer_ids across Bronze, Silver, and Gold Delta tables while managing Time Travel retention and downstream propagation?',
+        hint: 'Discuss DELETE/MERGE, Deletion Vectors, VACUUM retention trade-offs, Change Data Feed (CDF), and PII vault / pseudonymization patterns.',
+        rubricKeywords: [
+          { term: 'DELETE / MERGE by customer_id', regex: /(delete|merge)/i },
+          { term: 'VACUUM to purge physical Parquet files', regex: /(vacuum|physical|purge|retention)/i },
+          { term: 'Change Data Feed (CDF) propagation', regex: /(cdf|change\s+data\s+feed|table_changes)/i },
+          { term: 'Deletion Vectors / OPTIMIZE compaction', regex: /(deletion\s+vector|optimize|compact)/i },
+          { term: 'PII Lookup Vault / Pseudonymization', regex: /(pii|mask|encrypt|token|vault|unity\s+catalog)/i }
+        ],
+        modelAnswer: `Handling GDPR erasure in Delta Lake requires both logical deletion and physical file cleanup:
+1. Batch Deletes with Deletion Vectors: Collect GDPR requests over a window (e.g., weekly within the 30-day legal SLA) and execute a single DELETE FROM or MERGE INTO across affected tables. With Deletion Vectors enabled, the delete is fast; running OPTIMIZE afterwards rewrites the compacted Parquet files without the deleted records.
+2. Physical Purge via VACUUM: Because DELETE only writes logical tombstones in _delta_log, the user's PII still exists in older Parquet files via Time Travel until VACUUM runs. Run VACUUM table RETAIN 168 HOURS after the retention period passes to permanently delete the underlying files from S3/ADLS.
+3. Architectural Best Practice (PII Vault): Store raw PII mappings in a restricted Unity Catalog lookup table (with Column Masks) and use surrogate keys in Bronze/Silver/Gold—deleting or scrubbing the single PII lookup row anonymizes the customer across all historical layers instantly.`
+      }
+    ];
+
+    // ==================== KNOWLEDGE BASE FOR Q&A AGENT ====================
+    const knowledgeBase = [
+      {
+        keys: ['row_number', 'rank', 'dense_rank', 'window', 'tie', 'ties'],
+        title: 'ROW_NUMBER() vs RANK() vs DENSE_RANK()',
+        body: 'When ranking rows ordered by a metric with ties (e.g., salaries of 100, 100, 90):<br>• <strong>ROW_NUMBER()</strong> assigns unique sequential integers (1, 2, 3)—non-deterministic among ties unless you add a tie-breaker column to ORDER BY.<br>• <strong>RANK()</strong> assigns the same rank to ties and skips the next number (1, 1, 3).<br>• <strong>DENSE_RANK()</strong> assigns the same rank to ties without gaps (1, 1, 2). Use <code>QUALIFY</code> in Databricks SQL to filter any of them in one step.',
+        code: `SELECT emp_id, dept, salary,\n  ROW_NUMBER() OVER (PARTITION BY dept ORDER BY salary DESC, emp_id) AS rn,\n  RANK()       OVER (PARTITION BY dept ORDER BY salary DESC) AS rnk,\n  DENSE_RANK() OVER (PARTITION BY dept ORDER BY salary DESC) AS drnk\nFROM hr.employees\nQUALIFY drnk <= 3;`,
+        docUrl: 'https://docs.databricks.com/aws/en/dashboards/manage/data-modeling/custom-calculations/function-reference'
+      },
+      {
+        keys: ['liquid', 'clustering', 'z-order', 'zorder', 'partition', 'cluster by'],
+        title: 'Liquid Clustering (CLUSTER BY) vs Z-Ordering & Partitioning',
+        body: '<strong>Liquid Clustering</strong> (<code>CLUSTER BY (col1, col2)</code>) is Databricks\' recommended replacement for traditional <code>PARTITION BY</code> + <code>ZORDER BY</code>:<br>• Avoids the small-file problem caused by high-cardinality Hive partitions.<br>• Clusters data incrementally during writes and <code>OPTIMIZE</code>.<br>• Lets you change clustering keys anytime via <code>ALTER TABLE ... CLUSTER BY (...)</code> without rewriting existing data.',
+        code: `CREATE TABLE main.gold.events (\n  event_id STRING, event_date DATE, customer_id BIGINT\n) USING DELTA\nCLUSTER BY (event_date, customer_id);`,
+        docUrl: 'https://docs.databricks.com/aws/en/delta/'
+      },
+      {
+        keys: ['auto loader', 'autoloader', 'cloudfiles', 'readstream', 'ingest', 'rescued'],
+        title: 'Auto Loader (cloudFiles) vs Standard spark.readStream',
+        body: '<strong>Auto Loader</strong> (<code>format("cloudFiles")</code>) is purpose-built for incremental cloud object storage ingestion:<br>• Tracks processed files in a RocksDB checkpoint state store for exact-once processing.<br>• Supports cloud File Notification mode (SQS/Event Grid) or optimized incremental directory listing.<br>• Automatically infers schema, evolves new columns (<code>addNewColumns</code>), and captures malformed fields in <code>_rescued_data</code>.',
+        code: `df = (spark.readStream.format("cloudFiles")\n  .option("cloudFiles.format", "json")\n  .option("cloudFiles.schemaLocation", "/Volumes/main/ops/schema")\n  .load("s3://landing-bucket/orders/"))`,
+        docUrl: 'https://docs.databricks.com/aws/en/ingestion/cloud-object-storage/auto-loader/'
+      },
+      {
+        keys: ['scd', 'merge', 'upsert', 'type 1', 'type 2', 'cdc', 'apply changes'],
+        title: 'SCD Type 1 & Type 2 with MERGE INTO and AUTO CDC',
+        body: '• <strong>SCD Type 1</strong> overwrites attributes in place using <code>MERGE INTO</code> (always deduplicate source batches first and check <code>s.updated_at > t.updated_at</code>).<br>• <strong>SCD Type 2</strong> preserves full historical versions with <code>effective_start</code>, <code>effective_end</code>, and <code>is_current</code> flags. In Lakeflow DLT, <code>APPLY CHANGES INTO ... STORED AS SCD TYPE 2</code> automates out-of-order sequencing.',
+        code: `APPLY CHANGES INTO LIVE.dim_customer\nFROM STREAM(LIVE.cdc_customers)\nKEYS (customer_id) SEQUENCE BY event_ts\nSTORED AS SCD TYPE 2;`,
+        docUrl: 'https://docs.databricks.com/aws/en/data-engineering/what-is-cdc'
+      },
+      {
+        keys: ['skew', 'broadcast', 'join', 'sort-merge', 'aqe', 'salting', 'straggler'],
+        title: 'Broadcast Joins vs Sort-Merge Joins & Fixing Data Skew',
+        body: '• <strong>Broadcast Hash Join</strong> avoids shuffling the large table by sending the small table (< 10–100 MB) to every executor.<br>• <strong>Sort-Merge Join</strong> shuffles and sorts both tables by join key hash. If one key (like <code>NULL</code>) has millions of rows, one executor gets stuck.<br>• <strong>Fixes:</strong> Filter out <code>NULL</code> keys before joining, enable Adaptive Query Execution (<code>spark.sql.adaptive.skewJoin.enabled = true</code>), or use <code>/*+ BROADCAST(dim) */</code>.',
+        code: `SELECT /*+ BROADCAST(d) */ f.order_id, d.region_name\nFROM silver.fact_orders f\nJOIN silver.dim_regions d ON f.region_id = d.region_id\nWHERE f.region_id IS NOT NULL;`,
+        docUrl: 'https://docs.databricks.com/aws/en/sql/language-manual/sql-ref-syntax-qry-select-cte'
+      },
+      {
+        keys: ['unity catalog', 'managed', 'external', 'governance', 'mask', 'row filter', 'volume'],
+        title: 'Unity Catalog: 3-Level Namespace, Managed vs External & Masking',
+        body: 'Unity Catalog organizes assets under <code>catalog.schema.table</code>:<br>• <strong>Managed Tables:</strong> Unity Catalog governs both metadata and physical cloud files (<code>DROP TABLE</code> deletes the files).<br>• <strong>External Tables:</strong> Unity Catalog governs access/metadata, but <code>DROP TABLE</code> leaves underlying cloud files intact.<br>• Supports native SQL <code>ROW FILTER</code> and <code>COLUMN MASK</code> policies plus automated lineage.',
+        code: `ALTER TABLE main.silver.users\nALTER COLUMN ssn SET MASK main.sec.ssn_mask;`,
+        docUrl: 'https://docs.databricks.com/aws/en/data-governance/unity-catalog/'
+      }
+    ];
+
+    // ==================== UI RENDER FUNCTIONS ====================
+    let activeTab = 'concepts';
+    let selectedConceptId = 'medallion';
+    let selectedConceptFilter = 'all';
+    let selectedLabId = codingLabs[0].id;
+    let currentQuizIdx = 0;
+    let currentFcFilter = 'all';
+    let currentFcIdx = 0;
+    let isFcFlipped = false;
+
+    function updateGlobalProgress() {
+      const totalItems = conceptsData.length + codingLabs.length + quizQuestions.length;
+      const doneConcepts = appState.masteredConcepts.length;
+      const doneLabs = appState.solvedLabs.length;
+      const correctQuizzes = Object.entries(appState.quizAnswers).filter(([qId, ansIdx]) => {
+        const q = quizQuestions.find(item => item.id === qId);
+        return q && q.correctIndex === ansIdx;
+      }).length;
+
+      const pct = Math.min(100, Math.round(((doneConcepts + doneLabs + correctQuizzes) / totalItems) * 100));
+      document.getElementById('globalProgressBar').style.width = pct + '%';
+      document.getElementById('globalProgressText').textContent = pct + '%';
+
+      document.getElementById('badgeConcepts').textContent = `${doneConcepts}/${conceptsData.length}`;
+      document.getElementById('badgeLabs').textContent = `${doneLabs}/${codingLabs.length}`;
+      document.getElementById('badgeQuiz').textContent = `${correctQuizzes}/${quizQuestions.length}`;
+    }
+
+    // --- Tab Switching ---
+    document.querySelectorAll('.mode-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeTab = btn.getAttribute('data-tab');
+        document.querySelectorAll('.mode-tab').forEach(b => {
+          b.classList.remove('tab-active');
+          b.classList.add('bg-slate-900/80', 'text-slate-300');
+        });
+        btn.classList.add('tab-active');
+        btn.classList.remove('bg-slate-900/80', 'text-slate-300');
+
+        ['concepts', 'codelab', 'quiz', 'coach'].forEach(t => {
+          const el = document.getElementById('view-' + t);
+          if (t === activeTab) {
+            el.classList.remove('hidden');
+          } else {
+            el.classList.add('hidden');
+          }
+        });
+      });
+    });
+
+    // --- Architecture Stage Inspector ---
+    function renderArchStage(stageKey) {
+      const data = archStages[stageKey];
+      if (!data) return;
+
+      document.querySelectorAll('.arch-stage-btn').forEach(btn => {
+        if (btn.getAttribute('data-stage') === stageKey) {
+          btn.className = 'arch-stage-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40 transition';
+        } else {
+          btn.className = 'arch-stage-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition';
+        }
+      });
+
+      document.querySelectorAll('.arch-card').forEach(card => {
+        if (card.getAttribute('data-stage-card') === stageKey) {
+          card.classList.add('border-orange-500', 'bg-orange-950/20');
+          card.classList.remove('border-slate-800');
+        } else {
+          card.classList.remove('border-orange-500', 'bg-orange-950/20');
+          card.classList.add('border-slate-800');
+        }
+      });
+
+      const detailEl = document.getElementById('archStageDetail');
+      detailEl.innerHTML = `
+        <div class="space-y-2">
+          <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-orange-500/20 text-orange-300">${data.badge}</span>
+          <h3 class="text-sm sm:text-base font-bold text-white">${data.title}</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">${data.summary}</p>
+        </div>
+        <div class="bg-slate-900/90 border border-slate-800/90 rounded-xl p-3 space-y-1.5">
+          <div class="text-xs font-bold text-amber-400">Classic Interview Question:</div>
+          <p class="text-xs font-semibold text-white">"${data.interviewQ}"</p>
+          <p class="text-xs text-slate-300 leading-relaxed pt-1">${data.interviewA}</p>
+        </div>
+        <div>
+          <div class="text-[11px] font-mono text-slate-400 mb-1">Production Code Pattern:</div>
+          <pre class="code-font text-[11px] bg-[#070a12] text-emerald-300 border border-slate-800 rounded-xl p-3 overflow-x-auto leading-relaxed">${escapeHtml(data.code)}</pre>
+        </div>
+      `;
+    }
+
+    document.querySelectorAll('.arch-stage-btn').forEach(btn => {
+      btn.addEventListener('click', () => renderArchStage(btn.getAttribute('data-stage')));
+    });
+    document.querySelectorAll('.arch-card').forEach(card => {
+      card.addEventListener('click', () => renderArchStage(card.getAttribute('data-stage-card')));
+    });
+
+    // --- Concept Walkthroughs ---
+    function getFilteredConcepts() {
+      const q = (document.getElementById('conceptSearchInput').value || '').toLowerCase().trim();
+      return conceptsData.filter(c => {
+        const matchesCat = selectedConceptFilter === 'all' || c.category === selectedConceptFilter;
+        const matchesQ = !q ||
+          c.title.toLowerCase().includes(q) ||
+          c.summary.toLowerCase().includes(q) ||
+          c.keyPoints.some(kp => kp.toLowerCase().includes(q));
+        return matchesCat && matchesQ;
+      });
+    }
+
+    function renderConceptsList() {
+      const listEl = document.getElementById('conceptListContainer');
+      const filtered = getFilteredConcepts();
+      if (filtered.length === 0) {
+        listEl.innerHTML = `<div class="p-4 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-400">No concepts match your search filter.</div>`;
+        return;
+      }
+      if (!filtered.some(c => c.id === selectedConceptId)) {
+        selectedConceptId = filtered[0].id;
+      }
+
+      listEl.innerHTML = filtered.map(c => {
+        const isSelected = c.id === selectedConceptId;
+        const isMastered = appState.masteredConcepts.includes(c.id);
+        return `
+          <button type="button" data-concept-id="${c.id}" class="concept-item-btn w-full text-left p-3.5 rounded-xl border transition flex items-start justify-between gap-2 ${isSelected ? 'bg-slate-800/95 border-orange-500 shadow-md' : 'bg-slate-900/70 border-slate-800/90 hover:bg-slate-800/60'}">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-950 text-slate-300">${c.category}</span>
+                <span class="text-[11px] text-slate-400">${c.readTime}</span>
+              </div>
+              <div class="text-xs sm:text-sm font-bold text-white mt-1.5 leading-snug">${c.title}</div>
+            </div>
+            <span class="mt-1 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs ${isMastered ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-slate-800 text-slate-500'}">
+              ${isMastered ? '&check;' : '&bull;'}
+            </span>
+          </button>
+        `;
+      }).join('');
+
+      document.querySelectorAll('.concept-item-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectedConceptId = btn.getAttribute('data-concept-id');
+          renderConceptsList();
+          renderConceptDetail();
+        });
+      });
+    }
+
+    function renderConceptDetail() {
+      const c = conceptsData.find(item => item.id === selectedConceptId) || conceptsData[0];
+      const isMastered = appState.masteredConcepts.includes(c.id);
+      const detailEl = document.getElementById('conceptDetailContainer');
+
+      detailEl.innerHTML = `
+        <div class="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-slate-800">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-orange-500/20 text-orange-300">${c.category}</span>
+              <a href="${c.docUrl}" target="_blank" rel="noopener noreferrer" class="text-xs text-sky-400 hover:text-sky-300 underline">${c.docLabel} &nearr;</a>
+            </div>
+            <h3 class="text-xl font-bold text-white mt-2">${c.title}</h3>
+            <p class="text-xs sm:text-sm text-slate-300 mt-1">${c.summary}</p>
+          </div>
+          <button type="button" id="toggleConceptMasteredBtn" class="px-3.5 py-2 rounded-xl text-xs font-bold transition ${isMastered ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300' : 'bg-slate-800 hover:bg-slate-700 text-slate-200'}">
+            ${isMastered ? '&check; Marked as Mastered' : 'Mark as Mastered'}
+          </button>
+        </div>
+
+        <div class="space-y-4 mt-4">
+          <div class="rounded-xl bg-amber-950/30 border border-amber-500/30 p-3.5">
+            <div class="text-xs font-bold uppercase tracking-wider text-amber-400">Why Interviewers Ask This</div>
+            <p class="text-xs sm:text-sm text-amber-100 mt-1 leading-relaxed">${c.whyItMatters}</p>
+          </div>
+
+          <div>
+            <h4 class="text-sm font-bold text-white mb-2">Core Engineering Mechanics:</h4>
+            <ul class="space-y-2">
+              ${c.keyPoints.map(kp => `
+                <li class="flex items-start gap-2.5 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                  <span class="text-orange-400 font-bold mt-0.5">&rarr;</span>
+                  <span>${kp}</span>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+
+          <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 pt-1">
+            <div>
+              <div class="text-xs font-mono text-emerald-400 mb-1.5">Databricks SQL Pattern:</div>
+              <pre class="code-font text-xs bg-[#070a12] text-emerald-300 border border-slate-800 rounded-xl p-3.5 overflow-x-auto leading-relaxed">${escapeHtml(c.sqlSnippet)}</pre>
+            </div>
+            <div>
+              <div class="text-xs font-mono text-sky-400 mb-1.5">PySpark API Pattern:</div>
+              <pre class="code-font text-xs bg-[#070a12] text-sky-300 border border-slate-800 rounded-xl p-3.5 overflow-x-auto leading-relaxed">${escapeHtml(c.pysparkSnippet)}</pre>
+            </div>
+          </div>
+
+          <div class="rounded-xl bg-rose-950/30 border border-rose-500/30 p-3.5">
+            <div class="text-xs font-bold uppercase tracking-wider text-rose-400">Common Interview Trap to Avoid</div>
+            <p class="text-xs sm:text-sm text-rose-100 mt-1 leading-relaxed">${c.interviewTrap}</p>
+          </div>
+        </div>
+      `;
+
+      const toggleBtn = document.getElementById('toggleConceptMasteredBtn');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+          const idx = appState.masteredConcepts.indexOf(c.id);
+          if (idx >= 0) {
+            appState.masteredConcepts.splice(idx, 1);
+          } else {
+            appState.masteredConcepts.push(c.id);
+          }
+          saveState();
+          renderConceptsList();
+          renderConceptDetail();
+        });
+      }
+    }
+
+    document.querySelectorAll('.concept-filter').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedConceptFilter = btn.getAttribute('data-filter');
+        document.querySelectorAll('.concept-filter').forEach(b => {
+          b.className = 'concept-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 hover:bg-slate-800 transition';
+        });
+        btn.className = 'concept-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-orange-500 text-white transition';
+        renderConceptsList();
+        renderConceptDetail();
+      });
+    });
+
+    document.getElementById('conceptSearchInput').addEventListener('input', () => {
+      renderConceptsList();
+      renderConceptDetail();
+    });
+
+    // --- SQL & PySpark Coding Lab ---
+    function renderLabSelector() {
+      const container = document.getElementById('labSelectorPills');
+      container.innerHTML = codingLabs.map(lab => {
+        const isSelected = lab.id === selectedLabId;
+        const isSolved = appState.solvedLabs.includes(lab.id);
+        return `
+          <button type="button" data-lab-id="${lab.id}" class="lab-pill-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${isSelected ? 'bg-orange-500 text-white shadow' : 'bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800'}">
+            <span>${lab.title.split('.')[0]}. ${lab.title.split('.')[1].trim().slice(0, 18)}..</span>
+            ${isSolved ? '<span class="text-emerald-300 font-bold">&check;</span>' : ''}
+          </button>
+        `;
+      }).join('');
+
+      document.querySelectorAll('.lab-pill-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectedLabId = btn.getAttribute('data-lab-id');
+          renderLabSelector();
+          loadSelectedLab();
+        });
+      });
+    }
+
+    function loadSelectedLab() {
+      const lab = codingLabs.find(l => l.id === selectedLabId) || codingLabs[0];
+      const isSolved = appState.solvedLabs.includes(lab.id);
+
+      document.getElementById('labCategoryBadge').textContent = lab.category;
+      const statusBadge = document.getElementById('labStatusBadge');
+      statusBadge.textContent = isSolved ? 'Solved & Verified ✓' : 'In Progress';
+      statusBadge.className = isSolved ? 'text-xs font-bold text-emerald-400' : 'text-xs font-medium text-slate-400';
+
+      document.getElementById('labTitle').textContent = lab.title;
+      document.getElementById('labScenario').textContent = lab.scenario;
+      document.getElementById('labRequirements').innerHTML = lab.requirements.map(r => `<li>${escapeHtml(r)}</li>`).join('');
+      document.getElementById('labSampleTable').innerHTML = `<pre>${escapeHtml(lab.sampleTable)}</pre>`;
+      document.getElementById('labEditorLang').textContent = lab.lang;
+      document.getElementById('labCodeEditor').value = lab.starterCode;
+
+      const hintBox = document.getElementById('labHintBox');
+      hintBox.classList.add('hidden');
+      hintBox.textContent = '';
+
+      document.getElementById('labExecBadge').textContent = 'Ready to run';
+      document.getElementById('labExecBadge').className = 'text-xs font-mono text-slate-500';
+      document.getElementById('labOutputBody').innerHTML = 'Write your solution above and click <strong class="text-white">Run &amp; Validate</strong> to check your syntax, required clauses, and simulated query output.';
+    }
+
+    document.getElementById('btnHint1').addEventListener('click', () => {
+      const lab = codingLabs.find(l => l.id === selectedLabId);
+      const hintBox = document.getElementById('labHintBox');
+      hintBox.textContent = 'Hint 1: ' + lab.hint1;
+      hintBox.classList.remove('hidden');
+    });
+
+    document.getElementById('btnHint2').addEventListener('click', () => {
+      const lab = codingLabs.find(l => l.id === selectedLabId);
+      const hintBox = document.getElementById('labHintBox');
+      hintBox.textContent = 'Hint 2: ' + lab.hint2;
+      hintBox.classList.remove('hidden');
+    });
+
+    document.getElementById('btnShowSolution').addEventListener('click', () => {
+      const lab = codingLabs.find(l => l.id === selectedLabId);
+      document.getElementById('labCodeEditor').value = lab.solutionCode;
+    });
+
+    document.getElementById('btnResetCode').addEventListener('click', () => {
+      const lab = codingLabs.find(l => l.id === selectedLabId);
+      document.getElementById('labCodeEditor').value = lab.starterCode;
+    });
+
+    document.getElementById('btnRunCode').addEventListener('click', () => {
+      const lab = codingLabs.find(l => l.id === selectedLabId);
+      const code = document.getElementById('labCodeEditor').value || '';
+      const results = lab.checks.map(chk => ({
+        label: chk.label,
+        passed: chk.regex.test(code)
+      }));
+
+      const allPassed = results.every(r => r.passed);
+      const execBadge = document.getElementById('labExecBadge');
+      const outputBody = document.getElementById('labOutputBody');
+
+      if (allPassed) {
+        if (!appState.solvedLabs.includes(lab.id)) {
+          appState.solvedLabs.push(lab.id);
+          saveState();
+          renderLabSelector();
+          document.getElementById('labStatusBadge').textContent = 'Solved & Verified ✓';
+          document.getElementById('labStatusBadge').className = 'text-xs font-bold text-emerald-400';
+        }
+        execBadge.textContent = 'All Checks Passed ✓';
+        execBadge.className = 'text-xs font-mono font-bold text-emerald-400';
+        outputBody.innerHTML = `
+          <div class="space-y-3">
+            <div class="p-3 rounded-lg bg-emerald-950/40 border border-emerald-500/40 text-emerald-200 text-xs">
+              <strong>Great job!</strong> All ${results.length}/${results.length} structural &amp; logic checks passed.
+            </div>
+            <div>
+              <div class="text-[11px] font-mono text-slate-400 mb-1">Simulated Cluster Execution Output:</div>
+              <pre class="code-font text-xs bg-slate-950 p-3 rounded-lg border border-slate-800 text-emerald-300 overflow-x-auto">${escapeHtml(lab.simulatedResult)}</pre>
+            </div>
+          </div>
+        `;
+      } else {
+        const passCount = results.filter(r => r.passed).length;
+        execBadge.textContent = `${passCount}/${results.length} Checks Passed`;
+        execBadge.className = 'text-xs font-mono font-bold text-amber-400';
+        outputBody.innerHTML = `
+          <div class="space-y-2">
+            <div class="text-xs text-amber-300 font-semibold">Review the checklist below to complete your solution:</div>
+            <ul class="space-y-1.5 text-xs">
+              ${results.map(r => `
+                <li class="flex items-center gap-2 ${r.passed ? 'text-emerald-400' : 'text-rose-400'}">
+                  <span>${r.passed ? '&check;' : '&times;'}</span>
+                  <span>${escapeHtml(r.label)}</span>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+        `;
+      }
+    });
+
+    // --- Quizzes & Flashcards ---
+    document.getElementById('subTabQuizBtn').addEventListener('click', () => {
+      document.getElementById('quizSubView').classList.remove('hidden');
+      document.getElementById('flashcardSubView').classList.add('hidden');
+      document.getElementById('subTabQuizBtn').className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-orange-500 text-white transition';
+      document.getElementById('subTabFlashBtn').className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition';
+    });
+
+    document.getElementById('subTabFlashBtn').addEventListener('click', () => {
+      document.getElementById('quizSubView').classList.add('hidden');
+      document.getElementById('flashcardSubView').classList.remove('hidden');
+      document.getElementById('subTabFlashBtn').className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-orange-500 text-white transition';
+      document.getElementById('subTabQuizBtn').className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition';
+      renderFlashcard();
+    });
+
+    function renderQuiz() {
+      const q = quizQuestions[currentQuizIdx];
+      document.getElementById('quizTopicBadge').textContent = q.category;
+      document.getElementById('quizCounterText').textContent = `Question ${currentQuizIdx + 1} of ${quizQuestions.length}`;
+      document.getElementById('quizQuestionText').textContent = q.question;
+
+      const selectedAns = appState.quizAnswers[q.id];
+      const optionsEl = document.getElementById('quizOptionsContainer');
+
+      optionsEl.innerHTML = q.options.map((opt, idx) => {
+        let style = 'bg-slate-900/90 border-slate-800 hover:border-slate-600 text-slate-200';
+        if (selectedAns !== undefined) {
+          if (idx === q.correctIndex) {
+            style = 'bg-emerald-950/50 border-emerald-500 text-emerald-200 font-semibold';
+          } else if (idx === selectedAns && selectedAns !== q.correctIndex) {
+            style = 'bg-rose-950/50 border-rose-500 text-rose-200';
+          }
+        }
+        return `
+          <button type="button" data-opt-idx="${idx}" class="quiz-opt-btn w-full text-left p-3.5 rounded-xl border text-xs sm:text-sm transition flex items-start gap-3 ${style}">
+            <span class="w-6 h-6 rounded-lg bg-slate-800 text-slate-300 font-mono text-xs flex items-center justify-center flex-shrink-0">${String.fromCharCode(65 + idx)}</span>
+            <span>${escapeHtml(opt)}</span>
+          </button>
+        `;
+      }).join('');
+
+      document.querySelectorAll('.quiz-opt-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const chosen = parseInt(btn.getAttribute('data-opt-idx'), 10);
+          appState.quizAnswers[q.id] = chosen;
+          saveState();
+          renderQuiz();
+        });
+      });
+
+      const expBox = document.getElementById('quizExplanationBox');
+      if (selectedAns !== undefined) {
+        const isCorrect = selectedAns === q.correctIndex;
+        expBox.classList.remove('hidden');
+        const header = document.getElementById('quizExplanationHeader');
+        header.textContent = isCorrect ? 'Correct! Technical Rationale:' : 'Not Quite — Technical Rationale:';
+        header.className = isCorrect ? 'text-xs font-bold uppercase tracking-wider text-emerald-400' : 'text-xs font-bold uppercase tracking-wider text-amber-400';
+        document.getElementById('quizExplanationText').textContent = q.explanation;
+      } else {
+        expBox.classList.add('hidden');
+      }
+
+      // Render Grid Nav & Scores
+      const navEl = document.getElementById('quizGridNav');
+      navEl.innerHTML = quizQuestions.map((item, idx) => {
+        const ans = appState.quizAnswers[item.id];
+        let cls = 'bg-slate-900 border-slate-800 text-slate-400';
+        if (ans !== undefined) {
+          cls = ans === item.correctIndex
+            ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300 font-bold'
+            : 'bg-rose-500/20 border-rose-500/50 text-rose-300 font-bold';
+        }
+        if (idx === currentQuizIdx) {
+          cls += ' ring-2 ring-orange-500';
+        }
+        return `<button type="button" data-q-nav="${idx}" class="quiz-nav-btn h-8 rounded-lg border text-xs font-mono transition ${cls}">${idx + 1}</button>`;
+      }).join('');
+
+      document.querySelectorAll('.quiz-nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentQuizIdx = parseInt(btn.getAttribute('data-q-nav'), 10);
+          renderQuiz();
+        });
+      });
+
+      const countCorrect = cat => quizQuestions.filter(item => item.category === cat && appState.quizAnswers[item.id] === item.correctIndex).length;
+      const totalCorrect = quizQuestions.filter(item => appState.quizAnswers[item.id] === item.correctIndex).length;
+      document.getElementById('quizScoreText').textContent = `${totalCorrect} / ${quizQuestions.length} Correct`;
+      document.getElementById('scoreEtl').textContent = `${countCorrect('ETL & Streaming Pipelines')}/4`;
+      document.getElementById('scoreDatabricks').textContent = `${countCorrect('Databricks & Delta Lake')}/4`;
+      document.getElementById('scoreSql').textContent = `${countCorrect('Core SQL & Performance')}/4`;
+    }
+
+    document.getElementById('quizPrevBtn').addEventListener('click', () => {
+      currentQuizIdx = (currentQuizIdx - 1 + quizQuestions.length) % quizQuestions.length;
+      renderQuiz();
+    });
+    document.getElementById('quizNextBtn').addEventListener('click', () => {
+      currentQuizIdx = (currentQuizIdx + 1) % quizQuestions.length;
+      renderQuiz();
+    });
+
+    // --- Flashcards ---
+    function getFilteredFlashcards() {
+      if (currentFcFilter === 'all') return flashcardsData;
+      return flashcardsData.filter(fc => fc.category === currentFcFilter);
+    }
+
+    function renderFlashcard() {
+      const list = getFilteredFlashcards();
+      if (currentFcIdx >= list.length) currentFcIdx = 0;
+      const card = list[currentFcIdx];
+
+      document.getElementById('fcCounter').textContent = `Card ${currentFcIdx + 1} of ${list.length}`;
+      document.getElementById('fcCategoryBadge').textContent = card.category;
+      document.getElementById('fcPromptText').textContent = card.prompt;
+      document.getElementById('fcAnswerText').textContent = card.answer;
+      document.getElementById('fcCodeSnippet').textContent = card.code;
+
+      const ansContainer = document.getElementById('fcAnswerContainer');
+      const sideLabel = document.getElementById('fcSideLabel');
+      if (isFcFlipped) {
+        ansContainer.classList.remove('hidden');
+        sideLabel.textContent = 'Answer Revealed';
+        sideLabel.className = 'text-xs font-mono uppercase tracking-wider text-emerald-400';
+      } else {
+        ansContainer.classList.add('hidden');
+        sideLabel.textContent = 'Prompt (Click to Flip)';
+        sideLabel.className = 'text-xs font-mono uppercase tracking-wider text-slate-400';
+      }
+
+      const isMastered = appState.fcMastered.includes(card.id);
+      const statusEl = document.getElementById('fcMasteryStatus');
+      statusEl.textContent = isMastered ? 'Mastered ✓' : 'In Review Deck';
+      statusEl.className = isMastered ? 'font-bold text-emerald-400' : 'font-semibold text-slate-400';
+    }
+
+    document.getElementById('flashcardBox').addEventListener('click', () => {
+      isFcFlipped = !isFcFlipped;
+      renderFlashcard();
+    });
+    document.getElementById('fcFlipBtn').addEventListener('click', () => {
+      isFcFlipped = !isFcFlipped;
+      renderFlashcard();
+    });
+    document.getElementById('fcPrevBtn').addEventListener('click', () => {
+      const list = getFilteredFlashcards();
+      currentFcIdx = (currentFcIdx - 1 + list.length) % list.length;
+      isFcFlipped = false;
+      renderFlashcard();
+    });
+    document.getElementById('fcNextBtn').addEventListener('click', () => {
+      const list = getFilteredFlashcards();
+      currentFcIdx = (currentFcIdx + 1) % list.length;
+      isFcFlipped = false;
+      renderFlashcard();
+    });
+    document.getElementById('fcGotItBtn').addEventListener('click', () => {
+      const card = getFilteredFlashcards()[currentFcIdx];
+      if (!appState.fcMastered.includes(card.id)) {
+        appState.fcMastered.push(card.id);
+        saveState();
+      }
+      renderFlashcard();
+    });
+    document.getElementById('fcNeedReviewBtn').addEventListener('click', () => {
+      const card = getFilteredFlashcards()[currentFcIdx];
+      const idx = appState.fcMastered.indexOf(card.id);
+      if (idx >= 0) {
+        appState.fcMastered.splice(idx, 1);
+        saveState();
+      }
+      renderFlashcard();
+    });
+    document.querySelectorAll('.fc-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentFcFilter = btn.getAttribute('data-fc-filter');
+        currentFcIdx = 0;
+        isFcFlipped = false;
+        document.querySelectorAll('.fc-filter-btn').forEach(b => {
+          b.className = 'fc-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300';
+        });
+        btn.className = 'fc-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-orange-500 text-white';
+        renderFlashcard();
+      });
+    });
+
+    // --- Mock Interview Coach & Q&A Agent ---
+    function initInterviewCoach() {
+      const selectEl = document.getElementById('interviewPromptSelect');
+      selectEl.innerHTML = interviewPrompts.map(p => `<option value="${p.id}">${escapeHtml(p.title)}</option>`).join('');
+      selectEl.addEventListener('change', renderSelectedInterviewPrompt);
+      renderSelectedInterviewPrompt();
+    }
+
+    function renderSelectedInterviewPrompt() {
+      const pid = document.getElementById('interviewPromptSelect').value;
+      const p = interviewPrompts.find(item => item.id === pid) || interviewPrompts[0];
+      document.getElementById('interviewDifficultyBadge').textContent = p.difficulty;
+      document.getElementById('interviewTopicTag').textContent = p.topic;
+      document.getElementById('interviewQuestionDisplay').textContent = p.question;
+      document.getElementById('interviewContextHint').textContent = 'Coach Tip: ' + p.hint;
+      document.getElementById('interviewUserAnswer').value = '';
+      document.getElementById('interviewFeedbackBox').classList.add('hidden');
+    }
+
+    document.getElementById('btnFillSampleAnswer').addEventListener('click', () => {
+      const pid = document.getElementById('interviewPromptSelect').value;
+      const p = interviewPrompts.find(item => item.id === pid) || interviewPrompts[0];
+      document.getElementById('interviewUserAnswer').value = p.modelAnswer;
+    });
+
+    document.getElementById('btnEvaluateAnswer').addEventListener('click', () => {
+      const pid = document.getElementById('interviewPromptSelect').value;
+      const p = interviewPrompts.find(item => item.id === pid) || interviewPrompts[0];
+      const userText = (document.getElementById('interviewUserAnswer').value || '').trim();
+      const fbBox = document.getElementById('interviewFeedbackBox');
+      fbBox.classList.remove('hidden');
+
+      if (userText.length < 20) {
+        fbBox.innerHTML = `<div class="text-xs text-rose-400 font-semibold">Please write at least 1–2 sentences explaining your technical approach before evaluating, or click "Insert High-Scoring Sample Response" to test the rubric.</div>`;
+        return;
+      }
+
+      const evalResults = p.rubricKeywords.map(k => ({
+        term: k.term,
+        hit: k.regex.test(userText)
+      }));
+      const hits = evalResults.filter(r => r.hit).length;
+      const scorePct = Math.round((hits / evalResults.length) * 100);
+
+      fbBox.innerHTML = `
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+          <span class="text-xs font-bold uppercase tracking-wider text-white">Technical Rubric Evaluation</span>
+          <span class="text-sm font-bold ${scorePct >= 80 ? 'text-emerald-400' : scorePct >= 50 ? 'text-amber-400' : 'text-rose-400'}">Score: ${scorePct}% (${hits}/${evalResults.length} Key Pillars)</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          ${evalResults.map(r => `
+            <div class="text-xs flex items-center gap-2 p-2 rounded-lg border ${r.hit ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300' : 'bg-slate-900 border-slate-800 text-slate-400'}">
+              <span class="font-bold">${r.hit ? '&check;' : '&times;'}</span>
+              <span>${escapeHtml(r.term)}</span>
+            </div>
+          `).join('')}
+        </div>
+        <div class="pt-2">
+          <div class="text-xs font-bold text-amber-400 mb-1">Model Senior Data Engineer Response:</div>
+          <p class="text-xs text-slate-300 whitespace-pre-line leading-relaxed">${escapeHtml(p.modelAnswer)}</p>
+        </div>
+      `;
+    });
+
+    document.getElementById('btnRevealModelAnswer').addEventListener('click', () => {
+      const pid = document.getElementById('interviewPromptSelect').value;
+      const p = interviewPrompts.find(item => item.id === pid) || interviewPrompts[0];
+      const fbBox = document.getElementById('interviewFeedbackBox');
+      fbBox.classList.remove('hidden');
+      fbBox.innerHTML = `
+        <div class="text-xs font-bold text-amber-400 mb-1">Model Senior Data Engineer Response &amp; Key Pillars:</div>
+        <p class="text-xs text-slate-300 whitespace-pre-line leading-relaxed">${escapeHtml(p.modelAnswer)}</p>
+      `;
+    });
+
+    // --- Interactive Q&A Tutor ---
+    function answerTutorQuery(queryText) {
+      const q = (queryText || '').trim();
+      if (!q) return;
+      const lower = q.toLowerCase();
+
+      let matched = knowledgeBase.find(item => item.keys.some(k => lower.includes(k)));
+      if (!matched) {
+        // Fallback search across conceptsData
+        const conceptMatch = conceptsData.find(c =>
+          c.title.toLowerCase().includes(lower) ||
+          c.summary.toLowerCase().includes(lower) ||
+          c.keyPoints.some(kp => kp.toLowerCase().includes(lower))
+        );
+        if (conceptMatch) {
+          matched = {
+            title: conceptMatch.title,
+            body: conceptMatch.keyPoints.join('<br>• '),
+            code: conceptMatch.sqlSnippet,
+            docUrl: conceptMatch.docUrl
+          };
+        } else {
+          matched = {
+            title: 'Databricks Lakehouse & SQL Quick Guide',
+            body: 'For interviews on <strong>' + escapeHtml(q) + '</strong>, structure your answer around the 3 Lakehouse pillars:<br>• <strong>Ingestion &amp; ETL:</strong> Auto Loader (<code>cloudFiles</code>) into append-only Bronze, deduplication &amp; <code>MERGE INTO</code> / DLT Expectations in Silver.<br>• <strong>Storage &amp; Governance:</strong> Delta Lake ACID commits (<code>_delta_log</code>), Liquid Clustering (<code>CLUSTER BY</code>), and Unity Catalog 3-level namespaces.<br>• <strong>Core SQL:</strong> Window functions (<code>ROW_NUMBER</code>, <code>LAG</code>) with <code>QUALIFY</code>, null-safe <code>LEFT ANTI JOIN</code>, and Broadcast vs Sort-Merge Joins.',
+            code: `-- Use the Quick-Ask chips above or explore Tab 1 for deep-dive code patterns`,
+            docUrl: 'https://docs.databricks.com/aws/en/lakehouse/medallion'
+          };
+        }
+      }
+
+      const logEl = document.getElementById('agentConversationLog');
+      const cardHtml = `
+        <div class="rounded-xl bg-slate-950 border border-slate-800 p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-orange-400">Q: ${escapeHtml(q)}</span>
+            <a href="${matched.docUrl}" target="_blank" rel="noopener noreferrer" class="text-[11px] text-sky-400 hover:underline">Official Docs &nearr;</a>
+          </div>
+          <div class="text-xs font-bold text-white">${matched.title}</div>
+          <div class="text-xs text-slate-300 leading-relaxed">${matched.body}</div>
+          <pre class="code-font text-[11px] bg-[#070a12] text-emerald-300 border border-slate-800 rounded-lg p-2.5 overflow-x-auto">${escapeHtml(matched.code)}</pre>
+        </div>
+      `;
+      logEl.insertAdjacentHTML('afterbegin', cardHtml);
+    }
+
+    document.getElementById('agentAskBtn').addEventListener('click', () => {
+      const input = document.getElementById('agentAskInput');
+      answerTutorQuery(input.value);
+      input.value = '';
+    });
+
+    document.getElementById('agentAskInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const input = document.getElementById('agentAskInput');
+        answerTutorQuery(input.value);
+        input.value = '';
+      }
+    });
+
+    document.querySelectorAll('.quick-ask-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        answerTutorQuery(chip.getAttribute('data-ask'));
+      });
+    });
+
+    // Reset button
+    document.getElementById('resetProgressBtn').addEventListener('click', () => {
+      appState = JSON.parse(JSON.stringify(defaultState));
+      saveState();
+      renderConceptsList();
+      renderConceptDetail();
+      renderLabSelector();
+      loadSelectedLab();
+      renderQuiz();
+      renderFlashcard();
+    });
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    // ==================== INITIALIZE APP ====================
+    renderArchStage('bronze');
+    renderConceptsList();
+    renderConceptDetail();
+    renderLabSelector();
+    loadSelectedLab();
+    renderQuiz();
+    renderFlashcard();
+    initInterviewCoach();
+    answerTutorQuery('ROW_NUMBER vs RANK vs DENSE_RANK');
+    updateGlobalProgress();
+  </script>
+</body>
+</html>
