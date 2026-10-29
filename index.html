@@ -481,6 +481,14 @@
   </main>
 
   <script>
+    // ==================== VERCEL WEB ANALYTICS AUTO-LOADER ====================
+    if (typeof window !== 'undefined' && window.location && window.location.hostname.includes('vercel.app')) {
+      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+      const vaScript = document.createElement('script');
+      vaScript.defer = true;
+      vaScript.src = window.location.origin + '/_vercel/insights/script.js';
+      document.head.appendChild(vaScript);
+    }
     // ==================== SAFE STORAGE STATE ====================
     const defaultState = {
       masteredConcepts: ['medallion'],
