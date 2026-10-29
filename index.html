@@ -67,6 +67,7 @@
       background: #475569;
     }
   </style>
+  <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
 </head>
 <body class="min-h-screen flex flex-col bg-[#0b0f19] text-slate-100 selection:bg-orange-500 selection:text-white">
 
@@ -481,14 +482,6 @@
   </main>
 
   <script>
-    // ==================== VERCEL WEB ANALYTICS AUTO-LOADER ====================
-    if (typeof window !== 'undefined' && window.location && window.location.hostname.includes('vercel.app')) {
-      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-      const vaScript = document.createElement('script');
-      vaScript.defer = true;
-      vaScript.src = window.location.origin + '/_vercel/insights/script.js';
-      document.head.appendChild(vaScript);
-    }
     // ==================== SAFE STORAGE STATE ====================
     const defaultState = {
       masteredConcepts: ['medallion'],
